@@ -3,7 +3,6 @@ import { NavLink } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   FilePlus, 
-  Sparkles, 
   MapPin, 
   Smartphone, 
   Search, 
@@ -97,17 +96,6 @@ export const Sidebar: React.FC<SidebarProps> = () => {
               >
                 <FileSpreadsheet className="w-4 h-4 mr-2.5 text-blue-800" />
                 Gestión Operativa Fase 1
-              </NavLink>
-              <NavLink
-                to="/admin/smart-order"
-                className={({ isActive }) =>
-                  `flex items-center px-3 py-2 text-xs font-medium rounded-lg transition-colors ${
-                    isActive ? 'bg-blue-50 text-flow-primary font-semibold' : 'text-slate-600 hover:bg-slate-50'
-                  }`
-                }
-              >
-                <Sparkles className="w-4 h-4 mr-2.5 text-flow-secondary" />
-                Nuevo Pedido Inteligente (IA)
               </NavLink>
             </div>
 

@@ -5,7 +5,6 @@ import { LoginPage } from './pages/LoginPage';
 import { DashboardPage } from './pages/admin/DashboardPage';
 import { OperationsPage } from './pages/admin/OperationsPage';
 import { CreateOrderPage } from './pages/admin/CreateOrderPage';
-import { SmartOrderPage } from './pages/admin/SmartOrderPage';
 import { RouteDispatchPage } from './pages/driver/RouteDispatchPage';
 import { DailyRoutePage } from './pages/driver/DailyRoutePage';
 import { TrackingPage } from './pages/public/TrackingPage';
@@ -34,7 +33,6 @@ export const App: React.FC = () => {
           <Route path="/admin" element={<DashboardPage />} />
           <Route path="/admin/operations" element={<OperationsPage />} />
           <Route path="/admin/create-order" element={<CreateOrderPage />} />
-          <Route path="/admin/smart-order" element={<SmartOrderPage />} />
 
           {/* Driver Routes */}
           <Route path="/driver/route" element={<RouteDispatchPage />} />
