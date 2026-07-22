@@ -300,5 +300,101 @@ export const mockOrders: Order[] = [
     ],
 
     whatsappNotifications: []
+  },
+  {
+    id: 'ORD-84925',
+    trackingNumber: 'FX-3350-7765-CL',
+    enteredBy: 'cliente',
+    customerEmail: 'contacto@importacionessantiago.cl',
+    senderName: 'Importaciones Santiago S.A.',
+    senderPhone: '+56 9 8765 4321',
+    senderAddress: 'Bodega Central Pudahuel, Módulo 4',
+    senderCommune: 'Pudahuel',
+
+    recipientName: 'Fernanda Ibáñez Cortés',
+    recipientPhone: '+56 9 3321 9087',
+    recipientEmail: 'fernanda.ibanez@hotmail.com',
+    recipientAddress: 'Pasaje Los Aromos 220',
+    recipientCommune: 'Providencia',
+
+    packagesCount: 2,
+    packageType: 'Caja Mediana (Repuestos)',
+    weightKg: 3.1,
+    declaredValue: 120000,
+    insuranceCost: 2100,
+    shippingType: 'normal',
+
+    zone: 'Zona Santiago Oriente (Z-1)',
+
+    status: 'pending',
+    isPaid: false,
+
+    assignedDriverId: undefined,
+    assignedDriverName: undefined,
+
+    baseCost: 6200,
+    totalCost: 8300,
+
+    createdAt: '2026-07-22 11:10',
+    estimatedDelivery: '2026-07-23 17:00',
+
+    eventLogs: [
+      { id: 'EV-50', timestamp: '2026-07-22 11:10', user: 'contacto@importacionessantiago.cl', role: 'customer', action: 'Pedido Creado', details: 'Ingresado por cliente. Pendiente de pago.' }
+    ],
+
+    emailNotifications: [
+      { id: 'EM-50', timestamp: '2026-07-22 11:11', recipientEmail: 'fernanda.ibanez@hotmail.com', triggerEvent: 'order_created', subject: 'FlowEx: Tu pedido FX-3350-7765-CL está registrado', sent: true, body: 'Tu pedido de Importaciones Santiago fue registrado y está pendiente de pago.' }
+    ],
+
+    whatsappNotifications: []
+  },
+  {
+    id: 'ORD-84926',
+    trackingNumber: 'FX-5581-2290-CL',
+    enteredBy: 'vendedor',
+    sellerName: 'Rodrigo Vendedor B2B',
+    customerEmail: 'libreria@centro.cl',
+    senderName: 'Librerías del Centro',
+    senderPhone: '+56 9 3344 5566',
+    senderAddress: 'Pasaje Ahumada 45',
+    senderCommune: 'Santiago',
+
+    recipientName: 'Colegio San Ignacio',
+    recipientPhone: '+56 9 4432 1098',
+    recipientEmail: 'adquisiciones@sanignacio.cl',
+    recipientAddress: 'Av. Ricardo Lyon 1900',
+    recipientCommune: 'Ñuñoa',
+
+    packagesCount: 5,
+    packageType: 'Caja Grande (Material Educativo)',
+    weightKg: 8.4,
+    declaredValue: 210000,
+    insuranceCost: 3200,
+    shippingType: 'express',
+
+    zone: 'Zona Santiago Oriente (Z-1)',
+
+    status: 'pending',
+    isPaid: false,
+
+    assignedDriverId: undefined,
+    assignedDriverName: undefined,
+
+    baseCost: 11500,
+    totalCost: 15100,
+
+    createdAt: '2026-07-22 12:40',
+    estimatedDelivery: '2026-07-23 18:00',
+    notes: 'Entregar en portería con boleta adjunta.',
+
+    eventLogs: [
+      { id: 'EV-60', timestamp: '2026-07-22 12:40', user: 'rvendedor@flowex.cl', role: 'admin', action: 'Pedido Creado por Vendedor', details: 'Ingresado por vendedor Rodrigo Vendedor B2B. Pendiente de pago.' }
+    ],
+
+    emailNotifications: [
+      { id: 'EM-60', timestamp: '2026-07-22 12:41', recipientEmail: 'adquisiciones@sanignacio.cl', triggerEvent: 'order_created', subject: 'FlowEx: Tu pedido FX-5581-2290-CL está registrado', sent: true, body: 'Tu pedido de Librerías del Centro fue registrado y está pendiente de pago.' }
+    ],
+
+    whatsappNotifications: []
   }
 ];
