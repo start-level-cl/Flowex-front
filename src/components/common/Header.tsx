@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Shield, Truck, Globe, Bell } from 'lucide-react';
+import { Search, Shield, Truck, Globe } from 'lucide-react';
 import type { UserRole } from '../../types';
 
 interface HeaderProps {
@@ -70,7 +70,7 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, setRole }) => {
               Driver
             </button>
             <button
-              onClick={() => { setRole('customer'); navigate('/tracking'); }}
+              onClick={() => { setRole('customer'); navigate('/customer/orders'); }}
               className={`flex items-center px-2.5 py-1 rounded-md transition-colors font-medium ${
                 currentRole === 'customer' ? 'bg-flow-secondary text-white shadow' : 'text-blue-200 hover:text-white'
               }`}
@@ -80,22 +80,18 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, setRole }) => {
             </button>
           </div>
 
-          {/* Notifications & User Avatar */}
+          {/* User Avatar & Profile */}
           <div className="flex items-center space-x-2 border-l border-blue-800 pl-3">
-            <button className="p-1.5 text-blue-200 hover:text-white rounded-lg hover:bg-blue-800/50 relative">
-              <Bell className="w-4 h-4" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-flow-secondary rounded-full"></span>
-            </button>
             <div className="flex items-center space-x-2 bg-blue-900/40 px-2 py-1 rounded-lg">
               <div className="w-7 h-7 bg-blue-700 rounded-full flex items-center justify-center font-bold text-xs">
                 {currentRole === 'admin' ? 'OP' : currentRole === 'driver' ? 'RG' : 'CL'}
               </div>
               <div className="hidden lg:block text-left text-xs">
                 <p className="font-semibold leading-none">
-                  {currentRole === 'admin' ? 'Ricardo Barría' : currentRole === 'driver' ? 'Roberto Gómez' : 'Cliente Público'}
+                  {currentRole === 'admin' ? 'Ricardo Barría' : currentRole === 'driver' ? 'Roberto Gómez' : 'Cliente Registrado'}
                 </p>
                 <p className="text-[10px] text-blue-300 leading-tight">
-                  {currentRole === 'admin' ? 'Auditor General' : currentRole === 'driver' ? 'Unidad KJL-942' : 'Tracking Activo'}
+                  {currentRole === 'admin' ? 'Auditor General' : currentRole === 'driver' ? 'Unidad KJL-942' : 'Perfil Cliente'}
                 </p>
               </div>
             </div>
