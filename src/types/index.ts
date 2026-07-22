@@ -1,6 +1,21 @@
 export type UserRole = 'admin' | 'driver' | 'customer';
 
-export type OrderStatus = 'pending' | 'paid' | 'transit' | 'delivered' | 'incident';
+export type OrderStatus = 
+  | 'pending' 
+  | 'paid' 
+  | 'pickup_assigned' 
+  | 'picked_up' 
+  | 'in_hub' 
+  | 'transit' 
+  | 'delivered' 
+  | 'incident';
+
+export interface PromoCode {
+  code: string;
+  description: string;
+  type: 'percentage' | 'fixed' | 'free_shipping';
+  value: number;
+}
 
 export interface EventLog {
   id: string;
@@ -15,7 +30,7 @@ export interface EmailNotification {
   id: string;
   timestamp: string;
   recipientEmail: string;
-  triggerEvent: 'order_created' | 'in_transit' | 'delivered' | 'failed';
+  triggerEvent: 'order_created' | 'pickup' | 'hub_reception' | 'in_transit' | 'delivered' | 'failed';
   subject: string;
   body: string;
   sent: boolean;
@@ -25,7 +40,7 @@ export interface WhatsAppNotification {
   id: string;
   timestamp: string;
   recipientPhone: string;
-  triggerEvent: 'order_created' | 'in_transit' | 'delivered' | 'failed';
+  triggerEvent: 'order_created' | 'pickup' | 'hub_reception' | 'in_transit' | 'delivered' | 'failed';
   message: string;
   sent: boolean;
   whatsappUrl?: string;
@@ -71,8 +86,10 @@ export interface Order {
   insuranceCost: number;
   shippingType: 'normal' | 'express' | 'same_day';
   
-  // Automatic Zoning
+  // Automatic Zoning & Hub
   zone: string;
+  hubName?: string;
+  hubReceptionAt?: string;
   
   // Status & Payment
   status: OrderStatus;
@@ -81,7 +98,18 @@ export interface Order {
   paymentTransactionId?: string;
   paidAt?: string;
   
-  // Dispatch
+  // Promo Code & Discounts
+  promoCode?: string;
+  discountAmount?: number;
+  originalTotalCost?: number;
+  
+  // Dispatch & Pickup
+  pickupDriverId?: string;
+  pickupDriverName?: string;
+  pickedUpAt?: string;
+  pickupPhotoUrl?: string;
+  pickupNotes?: string;
+
   assignedDriverId?: string;
   assignedDriverName?: string;
 

@@ -113,14 +113,25 @@ export const TrackingPage: React.FC = () => {
                 <p className="font-semibold text-slate-800">{currentOrder.packagesCount} bulto(s) ({currentOrder.packageType})</p>
                 <p className="text-slate-500">Valor Declarado: ${currentOrder.declaredValue.toLocaleString()} CLP</p>
                 <p className="text-emerald-700 font-semibold mt-0.5">Seguro Cubierto: ${currentOrder.insuranceCost.toLocaleString()} CLP</p>
+                {currentOrder.promoCode && (
+                  <span className="inline-block mt-1 text-[10px] font-bold bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full border border-purple-200">
+                    🏷️ Código Promo: {currentOrder.promoCode} (-${currentOrder.discountAmount?.toLocaleString()} CLP)
+                  </span>
+                )}
               </div>
 
               <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/80">
-                <span className="text-slate-400 font-medium uppercase text-[10px] block mb-1">Ingresado Por</span>
+                <span className="text-slate-400 font-medium uppercase text-[10px] block mb-1">Logística & Hub CD</span>
                 <p className="font-bold text-flow-primary">
-                  {currentOrder.enteredBy === 'vendedor' ? `Vendedor (${currentOrder.sellerName})` : 'Cliente Directo'}
+                  {currentOrder.hubName || 'Hub Central Pudahuel'}
                 </p>
-                <p className="text-slate-500 text-[11px] mt-1">Conductor: <span className="font-semibold text-slate-800">{currentOrder.assignedDriverName || 'Asignación en proceso'}</span></p>
+                <p className="text-slate-500 text-[11px] mt-1">Conductor: <span className="font-semibold text-slate-800">{currentOrder.assignedDriverName || currentOrder.pickupDriverName || 'Asignación en proceso'}</span></p>
+                {currentOrder.pickupPhotoUrl && (
+                  <div className="mt-2 flex items-center space-x-2 bg-purple-50 p-1.5 rounded-lg border border-purple-200">
+                    <img src={currentOrder.pickupPhotoUrl} alt="Foto Recogida" className="w-10 h-10 object-cover rounded border border-purple-300" />
+                    <span className="text-[10px] text-purple-800 font-bold">✓ Foto de Recogida Registrada en Origen</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>

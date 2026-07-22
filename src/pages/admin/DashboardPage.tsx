@@ -135,17 +135,31 @@ export const DashboardPage: React.FC = () => {
               
               {/* Status Tabs */}
               <div className="flex flex-wrap gap-1">
-                {(['all', 'pending', 'paid', 'transit', 'delivered', 'incident'] as const).map(tab => (
+                {(['all', 'pending', 'paid', 'picked_up', 'in_hub', 'transit', 'delivered', 'incident'] as const).map(tab => (
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
-                    className={`px-3 py-1 text-xs font-semibold rounded-lg capitalize transition-colors ${
+                    className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors ${
                       activeTab === tab
                         ? 'bg-flow-primary text-white shadow-sm'
                         : 'text-slate-600 hover:bg-slate-200/60'
                     }`}
                   >
-                    {tab === 'all' ? 'Todos' : tab === 'pending' ? 'Pendiente' : tab === 'paid' ? 'Pagado' : tab === 'transit' ? 'En Tránsito' : tab === 'delivered' ? 'Entregado' : 'Incidencia'}
+                    {tab === 'all' 
+                      ? 'Todos' 
+                      : tab === 'pending' 
+                      ? 'Pendiente Pago' 
+                      : tab === 'paid' 
+                      ? 'Pagado' 
+                      : tab === 'picked_up'
+                      ? 'Recogido (Foto)'
+                      : tab === 'in_hub'
+                      ? 'En Hub CD'
+                      : tab === 'transit' 
+                      ? 'En Reparto' 
+                      : tab === 'delivered' 
+                      ? 'Entregado' 
+                      : 'Incidencia'}
                   </button>
                 ))}
               </div>
@@ -254,9 +268,12 @@ export const DashboardPage: React.FC = () => {
                           onChange={(e) => handleUpdateStatus(order.id, e.target.value as OrderStatus)}
                           className="bg-white border border-slate-300 text-[11px] font-semibold text-slate-700 rounded-lg px-2 py-1 focus:ring-2 focus:ring-flow-primary focus:outline-none"
                         >
-                          <option value="pending">Pendiente</option>
+                          <option value="pending">Pendiente Pago</option>
                           <option value="paid">Pagado</option>
-                          <option value="transit">En Tránsito</option>
+                          <option value="pickup_assigned">Recogida Asignada</option>
+                          <option value="picked_up">Recogido (Foto)</option>
+                          <option value="in_hub">En Hub CD</option>
+                          <option value="transit">En Reparto Final</option>
                           <option value="delivered">Entregado</option>
                           <option value="incident">Incidencia</option>
                         </select>

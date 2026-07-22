@@ -37,6 +37,8 @@ export const mockOrders: Order[] = [
     shippingType: 'express',
     
     zone: 'Zona Costa Viña (Z-3)',
+    hubName: 'Hub Central Pudahuel',
+    hubReceptionAt: '2026-07-21 16:30',
     
     status: 'transit',
     isPaid: true,
@@ -44,21 +46,33 @@ export const mockOrders: Order[] = [
     paymentTransactionId: 'TX-WEBPAY-99214',
     paidAt: '2026-07-20 09:35',
     
+    promoCode: 'FLOW10',
+    discountAmount: 1450,
+    originalTotalCost: 14500,
+
+    pickupDriverId: 'DRV-01',
+    pickupDriverName: 'Roberto Gómez',
+    pickedUpAt: '2026-07-21 11:20',
+    pickupPhotoUrl: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=500&auto=format&fit=crop&q=60',
+    pickupNotes: 'Bultos recibidos cerrados y con sello de seguridad.',
+
     assignedDriverId: 'DRV-01',
     assignedDriverName: 'Roberto Gómez (Furgón KJL-942)',
     
     baseCost: 9000,
-    totalCost: 14500,
+    totalCost: 13050,
     
     createdAt: '2026-07-20 09:30',
     estimatedDelivery: '2026-07-22 17:00',
     notes: 'Frágil - Contiene monitores LED.',
     
     eventLogs: [
-      { id: 'EV-1', timestamp: '2026-07-20 09:30', user: 'contacto@importacionessantiago.cl', role: 'customer', action: 'Pedido Creado', details: 'Ingresado directamente por cliente en plataforma web.' },
-      { id: 'EV-2', timestamp: '2026-07-20 09:35', user: 'Pasarela Webpay', role: 'Sistema', action: 'Pago Confirmado', details: 'Transacción exitosa TX-WEBPAY-99214 por $14.500.' },
-      { id: 'EV-3', timestamp: '2026-07-21 08:30', user: 'rbarria@flowex.cl', role: 'admin', action: 'Zonificación & Asignación Driver', details: 'Asignada Zona Costa Viña (Z-3) a conductor Roberto Gómez.' },
-      { id: 'EV-4', timestamp: '2026-07-22 09:15', user: 'rgomez@flowex.cl', role: 'driver', action: 'Cambio de Estado: En Camino', details: 'Carga escaneada y en ruta de reparto.' }
+      { id: 'EV-1', timestamp: '2026-07-20 09:30', user: 'contacto@importacionessantiago.cl', role: 'customer', action: 'Pedido Creado', details: 'Ingresado directamente por cliente con código promocional FLOW10.' },
+      { id: 'EV-2', timestamp: '2026-07-20 09:35', user: 'Pasarela Webpay', role: 'Sistema', action: 'Pago Confirmado', details: 'Transacción exitosa TX-WEBPAY-99214 con descuento aplicado.' },
+      { id: 'EV-2B', timestamp: '2026-07-21 11:20', user: 'rgomez@flowex.cl', role: 'driver', action: 'Recogida Realizada en Origen', details: 'Driver Roberto Gómez acudió a Av. Providencia 1234 y tomó foto del paquete.' },
+      { id: 'EV-2C', timestamp: '2026-07-21 16:30', user: 'operador.hub@flowex.cl', role: 'admin', action: 'Recepción en Hub CD Pudahuel', details: 'Paquete clasificado e ingresado a Hub Central Pudahuel.' },
+      { id: 'EV-3', timestamp: '2026-07-22 08:30', user: 'rbarria@flowex.cl', role: 'admin', action: 'Salida del Hub & Asignación Ruta Final', details: 'Asignada Zona Costa Viña (Z-3) a conductor Roberto Gómez para entrega.' },
+      { id: 'EV-4', timestamp: '2026-07-22 09:15', user: 'rgomez@flowex.cl', role: 'driver', action: 'Cambio de Estado: En Reparto Final', details: 'Carga escaneada y en ruta de reparto.' }
     ],
 
     emailNotifications: [
@@ -77,6 +91,112 @@ export const mockOrders: Order[] = [
         whatsappUrl: 'https://api.whatsapp.com/send?phone=56911223344&text=Hola%20Carlos%20Mendoza'
       }
     ]
+  },
+  {
+    id: 'ORD-84927',
+    trackingNumber: 'FX-3391-0021-CL',
+    enteredBy: 'cliente',
+    customerEmail: 'contacto@importacionessantiago.cl',
+    senderName: 'Importaciones Santiago S.A.',
+    senderPhone: '+56 9 8765 4321',
+    senderAddress: 'Bodega Central Pudahuel, Módulo 4',
+    senderCommune: 'Pudahuel',
+
+    recipientName: 'Empresas Soluciones SpA',
+    recipientPhone: '+56 9 7711 2233',
+    recipientEmail: 'compras@soluciones.cl',
+    recipientAddress: 'Av. El Bosque Norte 500',
+    recipientCommune: 'Las Condes',
+
+    packagesCount: 4,
+    packageType: 'Cajas Medianas (Componentes)',
+    weightKg: 6.2,
+    declaredValue: 320000,
+    insuranceCost: 3700,
+    shippingType: 'express',
+
+    zone: 'Zona Santiago Oriente (Z-1)',
+    hubName: 'Hub Central Pudahuel',
+
+    status: 'picked_up',
+    isPaid: true,
+    paymentMethod: 'webpay',
+    paymentTransactionId: 'TX-WEBPAY-88102',
+    paidAt: '2026-07-22 08:00',
+
+    pickupDriverId: 'DRV-02',
+    pickupDriverName: 'Camila Rojas',
+    pickedUpAt: '2026-07-22 10:15',
+    pickupPhotoUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&auto=format&fit=crop&q=60',
+    pickupNotes: 'Recogido directamente en módulo de bodega. Foto tomada por conductora Camila Rojas.',
+
+    baseCost: 7800,
+    totalCost: 11500,
+
+    createdAt: '2026-07-22 07:45',
+    estimatedDelivery: '2026-07-23 14:00',
+
+    eventLogs: [
+      { id: 'EV-70', timestamp: '2026-07-22 07:45', user: 'contacto@importacionessantiago.cl', role: 'customer', action: 'Pedido Creado', details: 'Ingresado por cliente.' },
+      { id: 'EV-71', timestamp: '2026-07-22 08:00', user: 'Pasarela Webpay', role: 'Sistema', action: 'Pago Confirmado', details: 'Pagado exitosamente.' },
+      { id: 'EV-72', timestamp: '2026-07-22 10:15', user: 'crojas@flowex.cl', role: 'driver', action: 'Recogida Realizada en Origen (Foto Adjunta)', details: 'Conductora Camila Rojas retiró paquete en Pudahuel y subió evidencia fotográfica. Rumbo a Hub CD Pudahuel.' }
+    ],
+
+    emailNotifications: [],
+    whatsappNotifications: []
+  },
+  {
+    id: 'ORD-84928',
+    trackingNumber: 'FX-8812-4439-CL',
+    enteredBy: 'vendedor',
+    sellerName: 'Rodrigo Vendedor B2B',
+    customerEmail: 'libreria@centro.cl',
+    senderName: 'Librerías del Centro',
+    senderPhone: '+56 9 3344 5566',
+    senderAddress: 'Pasaje Ahumada 45',
+    senderCommune: 'Santiago',
+
+    recipientName: 'Distribuidora del Norte',
+    recipientPhone: '+56 9 9900 1122',
+    recipientEmail: 'contacto@disnorte.cl',
+    recipientAddress: 'Av. Matta 1200',
+    recipientCommune: 'Santiago',
+
+    packagesCount: 2,
+    packageType: 'Caja Libros',
+    weightKg: 3.0,
+    declaredValue: 90000,
+    insuranceCost: 1400,
+    shippingType: 'normal',
+
+    zone: 'Zona Santiago Centro (Z-2)',
+    hubName: 'Hub Central Pudahuel',
+    hubReceptionAt: '2026-07-22 11:30',
+
+    status: 'in_hub',
+    isPaid: true,
+    paymentMethod: 'transfer',
+    paymentTransactionId: 'TX-TRF-99401',
+    paidAt: '2026-07-22 09:10',
+
+    pickupDriverId: 'DRV-02',
+    pickupDriverName: 'Camila Rojas',
+    pickedUpAt: '2026-07-22 10:30',
+
+    baseCost: 5000,
+    totalCost: 6400,
+
+    createdAt: '2026-07-22 09:00',
+    estimatedDelivery: '2026-07-23 12:00',
+
+    eventLogs: [
+      { id: 'EV-80', timestamp: '2026-07-22 09:00', user: 'rvendedor@flowex.cl', role: 'admin', action: 'Pedido Creado por Vendedor', details: 'Ingresado por vendedor Rodrigo B2B.' },
+      { id: 'EV-81', timestamp: '2026-07-22 10:30', user: 'crojas@flowex.cl', role: 'driver', action: 'Recogido en Origen', details: 'Retirado por Camila Rojas.' },
+      { id: 'EV-82', timestamp: '2026-07-22 11:30', user: 'operador.hub@flowex.cl', role: 'admin', action: 'Recepción en Centro de Distribución (Hub)', details: 'Ingresado a bodega Hub CD Pudahuel. Listo para despacho final.' }
+    ],
+
+    emailNotifications: [],
+    whatsappNotifications: []
   },
   {
     id: 'ORD-84921',
@@ -103,6 +223,7 @@ export const mockOrders: Order[] = [
     shippingType: 'normal',
     
     zone: 'Zona Santiago Oriente (Z-1)',
+    hubName: 'Hub Central Pudahuel',
     
     status: 'delivered',
     isPaid: true,
@@ -165,6 +286,7 @@ export const mockOrders: Order[] = [
     shippingType: 'normal',
     
     zone: 'Zona Sur Concepción (Z-4)',
+    hubName: 'Hub Concepción',
     
     status: 'paid',
     isPaid: true,
@@ -183,7 +305,7 @@ export const mockOrders: Order[] = [
     
     eventLogs: [
       { id: 'EV-20', timestamp: '2026-07-22 08:15', user: 'ventas@tecnostore.cl', role: 'customer', action: 'Pedido Creado', details: 'Ingresado por cliente TecnoStore.' },
-      { id: 'EV-21', timestamp: '2026-07-22 08:20', user: 'Tarjeta Crédito', role: 'Sistema', action: 'Pago Confirmado', details: 'Pagado exitosamente.' }
+      { id: 'EV-21', timestamp: '2026-07-22 08:20', user: 'Tarjeta Crédito', role: 'Sistema', action: 'Pago Confirmado', details: 'Pagado exitosamente. Pendiente de asignación de recogida.' }
     ],
 
     emailNotifications: [
@@ -217,6 +339,7 @@ export const mockOrders: Order[] = [
     shippingType: 'normal',
     
     zone: 'Zona Sur Temuco (Z-5)',
+    hubName: 'Hub Temuco',
     
     status: 'incident',
     isPaid: true,
@@ -297,102 +420,6 @@ export const mockOrders: Order[] = [
 
     emailNotifications: [
       { id: 'EM-40', timestamp: '2026-07-22 10:06', recipientEmail: 'constanza.larrain@gmail.com', triggerEvent: 'order_created', subject: 'FlowEx: Tu pedido FX-6632-4411-CL está registrado', sent: true, body: 'Tu pedido de Boutique Parisienne fue registrado y está pendiente de pago.' }
-    ],
-
-    whatsappNotifications: []
-  },
-  {
-    id: 'ORD-84925',
-    trackingNumber: 'FX-3350-7765-CL',
-    enteredBy: 'cliente',
-    customerEmail: 'contacto@importacionessantiago.cl',
-    senderName: 'Importaciones Santiago S.A.',
-    senderPhone: '+56 9 8765 4321',
-    senderAddress: 'Bodega Central Pudahuel, Módulo 4',
-    senderCommune: 'Pudahuel',
-
-    recipientName: 'Fernanda Ibáñez Cortés',
-    recipientPhone: '+56 9 3321 9087',
-    recipientEmail: 'fernanda.ibanez@hotmail.com',
-    recipientAddress: 'Pasaje Los Aromos 220',
-    recipientCommune: 'Providencia',
-
-    packagesCount: 2,
-    packageType: 'Caja Mediana (Repuestos)',
-    weightKg: 3.1,
-    declaredValue: 120000,
-    insuranceCost: 2100,
-    shippingType: 'normal',
-
-    zone: 'Zona Santiago Oriente (Z-1)',
-
-    status: 'pending',
-    isPaid: false,
-
-    assignedDriverId: undefined,
-    assignedDriverName: undefined,
-
-    baseCost: 6200,
-    totalCost: 8300,
-
-    createdAt: '2026-07-22 11:10',
-    estimatedDelivery: '2026-07-23 17:00',
-
-    eventLogs: [
-      { id: 'EV-50', timestamp: '2026-07-22 11:10', user: 'contacto@importacionessantiago.cl', role: 'customer', action: 'Pedido Creado', details: 'Ingresado por cliente. Pendiente de pago.' }
-    ],
-
-    emailNotifications: [
-      { id: 'EM-50', timestamp: '2026-07-22 11:11', recipientEmail: 'fernanda.ibanez@hotmail.com', triggerEvent: 'order_created', subject: 'FlowEx: Tu pedido FX-3350-7765-CL está registrado', sent: true, body: 'Tu pedido de Importaciones Santiago fue registrado y está pendiente de pago.' }
-    ],
-
-    whatsappNotifications: []
-  },
-  {
-    id: 'ORD-84926',
-    trackingNumber: 'FX-5581-2290-CL',
-    enteredBy: 'vendedor',
-    sellerName: 'Rodrigo Vendedor B2B',
-    customerEmail: 'libreria@centro.cl',
-    senderName: 'Librerías del Centro',
-    senderPhone: '+56 9 3344 5566',
-    senderAddress: 'Pasaje Ahumada 45',
-    senderCommune: 'Santiago',
-
-    recipientName: 'Colegio San Ignacio',
-    recipientPhone: '+56 9 4432 1098',
-    recipientEmail: 'adquisiciones@sanignacio.cl',
-    recipientAddress: 'Av. Ricardo Lyon 1900',
-    recipientCommune: 'Ñuñoa',
-
-    packagesCount: 5,
-    packageType: 'Caja Grande (Material Educativo)',
-    weightKg: 8.4,
-    declaredValue: 210000,
-    insuranceCost: 3200,
-    shippingType: 'express',
-
-    zone: 'Zona Santiago Oriente (Z-1)',
-
-    status: 'pending',
-    isPaid: false,
-
-    assignedDriverId: undefined,
-    assignedDriverName: undefined,
-
-    baseCost: 11500,
-    totalCost: 15100,
-
-    createdAt: '2026-07-22 12:40',
-    estimatedDelivery: '2026-07-23 18:00',
-    notes: 'Entregar en portería con boleta adjunta.',
-
-    eventLogs: [
-      { id: 'EV-60', timestamp: '2026-07-22 12:40', user: 'rvendedor@flowex.cl', role: 'admin', action: 'Pedido Creado por Vendedor', details: 'Ingresado por vendedor Rodrigo Vendedor B2B. Pendiente de pago.' }
-    ],
-
-    emailNotifications: [
-      { id: 'EM-60', timestamp: '2026-07-22 12:41', recipientEmail: 'adquisiciones@sanignacio.cl', triggerEvent: 'order_created', subject: 'FlowEx: Tu pedido FX-5581-2290-CL está registrado', sent: true, body: 'Tu pedido de Librerías del Centro fue registrado y está pendiente de pago.' }
     ],
 
     whatsappNotifications: []

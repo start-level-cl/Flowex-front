@@ -87,14 +87,21 @@ export const OperationsPage: React.FC = () => {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
           
           {/* Bulk Actions */}
-          <div className="flex items-center space-x-2 w-full sm:w-auto">
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
             <span className="text-xs font-semibold text-slate-500">Acciones en lote ({selectedIds.length}):</span>
+            <button
+              disabled={selectedIds.length === 0}
+              onClick={() => handleBulkStatusChange('in_hub')}
+              className="px-2.5 py-1 bg-indigo-50 text-indigo-700 text-xs font-semibold rounded-lg hover:bg-indigo-100 disabled:opacity-40 disabled:cursor-not-allowed border border-indigo-200"
+            >
+              Recepción Hub CD
+            </button>
             <button
               disabled={selectedIds.length === 0}
               onClick={() => handleBulkStatusChange('transit')}
               className="px-2.5 py-1 bg-blue-50 text-flow-primary text-xs font-semibold rounded-lg hover:bg-blue-100 disabled:opacity-40 disabled:cursor-not-allowed border border-blue-200"
             >
-              Pasar a "En Tránsito"
+              Salida a Reparto
             </button>
             <button
               disabled={selectedIds.length === 0}
@@ -207,9 +214,12 @@ export const OperationsPage: React.FC = () => {
                       }}
                       className="bg-white border border-slate-300 text-[11px] font-semibold text-slate-700 rounded-lg px-2 py-1 focus:ring-2 focus:ring-flow-primary focus:outline-none"
                     >
-                      <option value="pending">Pendiente</option>
+                      <option value="pending">Pendiente Pago</option>
                       <option value="paid">Pagado</option>
-                      <option value="transit">En Tránsito</option>
+                      <option value="pickup_assigned">Recogida Asignada</option>
+                      <option value="picked_up">Recogido (Foto)</option>
+                      <option value="in_hub">En Hub CD</option>
+                      <option value="transit">En Reparto Final</option>
                       <option value="delivered">Entregado</option>
                       <option value="incident">Incidencia</option>
                     </select>

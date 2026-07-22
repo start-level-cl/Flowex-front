@@ -8,10 +8,12 @@ import {
   ArrowRight,
   ShieldCheck,
   Plus,
-  Layers
+  Layers,
+  Tag
 } from 'lucide-react';
 import { mockOrders, mockCustomerProfile } from '../../data/mockData';
 import type { Order } from '../../types';
+import { validateAndApplyPromoCode } from '../../data/promoCodes';
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { PMVRequirementBadge } from '../../components/common/PMVRequirementBadge';
 
@@ -24,6 +26,15 @@ export const CustomerOrdersPage: React.FC = () => {
   const [selectedOrderIds, setSelectedOrderIds] = useState<Set<string>>(new Set());
   const [ordersToPay, setOrdersToPay] = useState<Order[]>([]);
   const [paymentSuccessToast, setPaymentSuccessToast] = useState<string | null>(null);
+
+  // Requirement 1: Promo Code in Payment Modal
+  const [inputModalPromo, setInputModalPromo] = useState('');
+  const [appliedModalPromo, setAppliedModalPromo] = useState<{
+    code: string;
+    discountAmount: number;
+    description: string;
+  } | null>(null);
+  const [modalPromoMsg, setModalPromoMsg] = useState<{ text: string; isError: boolean } | null>(null);
 
   // Filter orders for the logged customer
   const customerOrders = orders.filter(o => o.customerEmail === customerEmail || true);
@@ -52,6 +63,23 @@ export const CustomerOrdersPage: React.FC = () => {
     );
   };
 
+  const handleApplyModalPromo = () => {
+    if (!inputModalPromo.trim() || ordersToPay.length === 0) return;
+    const currentBaseTotal = ordersToPay.reduce((sum, o) => sum + o.totalCost, 0);
+    const result = validateAndApplyPromoCode(inputModalPromo, currentBaseTotal);
+    if (result.isValid && result.promoCode) {
+      setAppliedModalPromo({
+        code: result.promoCode.code,
+        discountAmount: result.discountAmount,
+        description: result.promoCode.description
+      });
+      setModalPromoMsg({ text: result.message, isError: false });
+    } else {
+      setAppliedModalPromo(null);
+      setModalPromoMsg({ text: result.message, isError: true });
+    }
+  };
+
   const handlePayOrder = (method: 'webpay' | 'credit_card' | 'transfer') => {
     if (ordersToPay.length === 0) return;
 
@@ -65,13 +93,16 @@ export const CustomerOrdersPage: React.FC = () => {
     setOrders(prev => prev.map(o => {
       if (!payingIds.has(o.id)) return o;
 
+      const orderDiscount = appliedModalPromo ? Math.round(appliedModalPromo.discountAmount / ordersToPay.length) : 0;
+      const finalOrderCost = Math.max(0, o.totalCost - orderDiscount);
+
       const payLog = {
         id: `EV-PAY-${Date.now()}-${o.id}`,
         timestamp: paidAtStr,
         user: currentEmail,
         role: currentRole,
         action: 'Pago Exitoso Realizado por Cliente',
-        details: `Pago de $${o.totalCost.toLocaleString()} procesado por ${method.toUpperCase()} (${txId}).${isBatch ? ` Pago múltiple agrupado (${ordersToPay.length} envíos).` : ''}`
+        details: `Pago de $${finalOrderCost.toLocaleString()} procesado por ${method.toUpperCase()} (${txId}).${appliedModalPromo ? ` Descuento ${appliedModalPromo.code} aplicado.` : ''}`
       };
 
       const payEmail = {
@@ -91,17 +122,26 @@ export const CustomerOrdersPage: React.FC = () => {
         paymentMethod: method,
         paymentTransactionId: txId,
         paidAt: paidAtStr,
+        promoCode: appliedModalPromo ? appliedModalPromo.code : o.promoCode,
+        discountAmount: orderDiscount || o.discountAmount,
+        totalCost: finalOrderCost,
         eventLogs: [payLog, ...o.eventLogs],
         emailNotifications: [payEmail, ...o.emailNotifications]
       };
     }));
 
+    const rawTotal = ordersToPay.reduce((s, o) => s + o.totalCost, 0);
+    const finalTotal = Math.max(0, rawTotal - (appliedModalPromo ? appliedModalPromo.discountAmount : 0));
+
     setPaymentSuccessToast(
       isBatch
-        ? `¡Pago Aprobado! ${ordersToPay.length} envíos por $${ordersToPay.reduce((s, o) => s + o.totalCost, 0).toLocaleString()} CLP cambiaron a estado Pagado.`
-        : `¡Pago Aprobado! El envío ${ordersToPay[0].trackingNumber} cambió a estado Pagado.`
+        ? `¡Pago Aprobado! ${ordersToPay.length} envíos por $${finalTotal.toLocaleString()} CLP cambiaron a estado Pagado.`
+        : `¡Pago Aprobado! El envío ${ordersToPay[0].trackingNumber} por $${finalTotal.toLocaleString()} CLP cambió a estado Pagado.`
     );
     setOrdersToPay([]);
+    setAppliedModalPromo(null);
+    setInputModalPromo('');
+    setModalPromoMsg(null);
     setSelectedOrderIds(new Set());
     setTimeout(() => setPaymentSuccessToast(null), 5000);
   };
@@ -364,12 +404,48 @@ export const CustomerOrdersPage: React.FC = () => {
                   <span className="font-semibold text-slate-800">${o.totalCost.toLocaleString()}</span>
                 </div>
               ))}
+
+              {appliedModalPromo && (
+                <div className="flex justify-between text-emerald-700 font-semibold pt-1">
+                  <span>Descuento Promocional ({appliedModalPromo.code}):</span>
+                  <span>-${appliedModalPromo.discountAmount.toLocaleString()} CLP</span>
+                </div>
+              )}
+
               <div className="flex justify-between text-slate-900 font-bold text-sm border-t border-slate-200 pt-2">
                 <span>Monto Total a Pagar:</span>
                 <span className="text-flow-secondary font-mono">
-                  ${ordersToPay.reduce((sum, o) => sum + o.totalCost, 0).toLocaleString()} CLP
+                  ${Math.max(0, ordersToPay.reduce((sum, o) => sum + o.totalCost, 0) - (appliedModalPromo?.discountAmount || 0)).toLocaleString()} CLP
                 </span>
               </div>
+            </div>
+
+            {/* Promo Code Input in Payment Modal */}
+            <div className="space-y-2 pt-1 border-t border-slate-100">
+              <label className="block text-[11px] font-bold text-slate-700 uppercase flex items-center">
+                <Tag className="w-3.5 h-3.5 mr-1 text-flow-secondary" /> ¿Tienes un código promocional?
+              </label>
+              <div className="flex gap-1.5">
+                <input
+                  type="text"
+                  placeholder="Ej: FLOW10, DESCUENTO20"
+                  value={inputModalPromo}
+                  onChange={(e) => setInputModalPromo(e.target.value.toUpperCase())}
+                  className="flex-1 text-xs px-3 py-1.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-flow-primary font-mono uppercase"
+                />
+                <button
+                  type="button"
+                  onClick={handleApplyModalPromo}
+                  className="px-3 py-1.5 bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs rounded-lg shadow"
+                >
+                  Aplicar
+                </button>
+              </div>
+              {modalPromoMsg && (
+                <p className={`text-[11px] font-medium ${modalPromoMsg.isError ? 'text-rose-600' : 'text-emerald-600'}`}>
+                  {modalPromoMsg.text}
+                </p>
+              )}
             </div>
 
             <div className="space-y-3">

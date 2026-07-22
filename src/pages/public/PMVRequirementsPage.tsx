@@ -14,7 +14,10 @@ import {
   LayoutDashboard, 
   History, 
   Search, 
-  MessageCircle
+  MessageCircle,
+  Tag,
+  PackageCheck,
+  Building2
 } from 'lucide-react';
 
 interface PMVRequirementDetail {
@@ -129,6 +132,33 @@ export const PMVRequirementsPage: React.FC = () => {
       implementation: 'Trigger automático de email e integración con WhatsApp Web API que notifica al cliente en cada cambio de hito.',
       targetPath: '/tracking',
       icon: <MessageCircle className="w-5 h-5 text-emerald-600" />
+    },
+    {
+      num: 12,
+      title: 'Códigos promocionales & Descuentos',
+      category: 'Finanzas & Promociones',
+      description: 'Sistema de cupones promocionales con descuentos aplicables al momento de cotizar y realizar el pago.',
+      implementation: 'Validación en vivo de códigos (FLOW10, DESCUENTO20, BIENVENIDA5000, ENVIOFREE) recalculando el costo total y reflejando el descuento.',
+      targetPath: '/customer/create',
+      icon: <Tag className="w-5 h-5 text-purple-600" />
+    },
+    {
+      num: 13,
+      title: 'Flujo completo de envío (Recogida -> CD Hub -> Reparto)',
+      category: 'Ciclo Logístico Integrado',
+      description: 'Flujo end-to-end: Cliente genera paquete -> Driver acude a retirar y toma foto de recepción -> Entrega en Centro de Distribución -> Reparto final.',
+      implementation: 'Captura de foto de recepción en origen (remitente), marca de ingreso a Centro de Distribución y trazabilidad de todos los estados del paquete.',
+      targetPath: '/driver/daily',
+      icon: <Building2 className="w-5 h-5 text-indigo-600" />
+    },
+    {
+      num: 14,
+      title: 'Generación de ruta de recogida',
+      category: 'Optimización de Ruta Driver',
+      description: 'La aplicación genera automáticamente rutas organizadas para la recolección de paquetes en origen.',
+      implementation: 'Modulo de enrutamiento dual que clasifica y ordena las paradas de recolección de los conductores previa entrega al Centro de Distribución.',
+      targetPath: '/driver/route',
+      icon: <PackageCheck className="w-5 h-5 text-orange-600" />
     }
   ];
 
@@ -141,17 +171,17 @@ export const PMVRequirementsPage: React.FC = () => {
           <div className="flex items-center space-x-2">
             <Layers className="w-6 h-6 text-flow-secondary" />
             <span className="text-xs font-mono font-bold text-flow-secondary uppercase tracking-widest">
-              Especificación PMV FlowEx 1.0
+              Especificación PMV FlowEx 1.1 (Con Nuevos Requerimientos)
             </span>
           </div>
           <h1 className="text-3xl font-headline font-extrabold">Matriz de Requerimientos del Frontend</h1>
           <p className="text-xs text-blue-200 max-w-xl leading-relaxed">
-            Lista completa de los 11 requerimientos obligatorios acordados para la primera versión funcional. Todos se encuentran 100% abordados, funcionales y desplegados en Vercel.
+            Lista completa de los 14 requerimientos obligatorios acordados (incluyendo Códigos Promocionales, Flujo Completo Recogida $\rightarrow$ Hub CD $\rightarrow$ Reparto y Generación de Ruta de Recogida).
           </p>
         </div>
 
         <div className="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20 text-center flex flex-col justify-center">
-          <span className="text-3xl font-headline font-extrabold text-flow-secondary font-mono">11 / 11</span>
+          <span className="text-3xl font-headline font-extrabold text-flow-secondary font-mono">14 / 14</span>
           <span className="text-[10px] text-blue-100 uppercase font-bold tracking-wider mt-1">Requerimientos Listos</span>
           <span className="text-[10px] bg-emerald-500 text-white font-bold px-2 py-0.5 rounded-full mt-2 inline-block">
             ✓ 100% Cumplido

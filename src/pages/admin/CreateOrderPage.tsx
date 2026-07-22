@@ -9,10 +9,12 @@ import {
   AlertTriangle, 
   ArrowLeft, 
   ShieldCheck,
-  UserCheck
+  UserCheck,
+  Tag
 } from 'lucide-react';
 import { coverageZonesList, getCommuneZone } from '../../data/coverageZones';
 import { mockCustomerProfile } from '../../data/mockData';
+import { validateAndApplyPromoCode } from '../../data/promoCodes';
 import { PMVRequirementBadge } from '../../components/common/PMVRequirementBadge';
 
 export const CreateOrderPage: React.FC = () => {
@@ -42,6 +44,15 @@ export const CreateOrderPage: React.FC = () => {
     notes: ''
   });
 
+  // Requirement 1: Promo code state
+  const [inputPromoCode, setInputPromoCode] = useState('');
+  const [appliedPromo, setAppliedPromo] = useState<{
+    code: string;
+    description: string;
+    discountAmount: number;
+  } | null>(null);
+  const [promoMessage, setPromoMessage] = useState<{ text: string; isError: boolean } | null>(null);
+
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [createdOrder, setCreatedOrder] = useState<any>(null);
 
@@ -55,7 +66,7 @@ export const CreateOrderPage: React.FC = () => {
     return Math.round(baseInsurance + valueFee);
   };
 
-  const calculateTotalCost = () => {
+  const calculateSubtotalCost = () => {
     const baseShipping = 4500;
     const packageFee = formData.packagesCount * 800;
     const expressFee = formData.shippingType === 'express' ? 3000 : formData.shippingType === 'same_day' ? 5000 : 0;
@@ -63,11 +74,42 @@ export const CreateOrderPage: React.FC = () => {
     return baseShipping + packageFee + expressFee + insurance;
   };
 
+  const calculateFinalTotalCost = () => {
+    const subtotal = calculateSubtotalCost();
+    const discount = appliedPromo ? appliedPromo.discountAmount : 0;
+    return Math.max(0, subtotal - discount);
+  };
+
+  const handleApplyPromoCode = () => {
+    if (!inputPromoCode.trim()) return;
+    const subtotal = calculateSubtotalCost();
+    const result = validateAndApplyPromoCode(inputPromoCode, subtotal);
+    if (result.isValid && result.promoCode) {
+      setAppliedPromo({
+        code: result.promoCode.code,
+        description: result.promoCode.description,
+        discountAmount: result.discountAmount
+      });
+      setPromoMessage({ text: result.message, isError: false });
+    } else {
+      setAppliedPromo(null);
+      setPromoMessage({ text: result.message, isError: true });
+    }
+  };
+
+  const handleRemovePromo = () => {
+    setAppliedPromo(null);
+    setInputPromoCode('');
+    setPromoMessage(null);
+  };
+
   const handleSubmitForm = (e: React.FormEvent) => {
     e.preventDefault();
     if (!zoneInfo.hasCoverage) return;
 
     const trackingNumber = `FX-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(1000 + Math.random() * 9000)}-CL`;
+    const subtotal = calculateSubtotalCost();
+    const finalTotal = calculateFinalTotalCost();
     
     const newOrderData = {
       id: `ORD-${Date.now()}`,
@@ -94,11 +136,15 @@ export const CreateOrderPage: React.FC = () => {
       shippingType: formData.shippingType,
       
       zone: zoneInfo.zoneName,
+      hubName: 'Hub Central Pudahuel',
       
       status: 'pending',
       isPaid: false,
       baseCost: 4500,
-      totalCost: calculateTotalCost(),
+      totalCost: finalTotal,
+      originalTotalCost: subtotal,
+      promoCode: appliedPromo?.code,
+      discountAmount: appliedPromo?.discountAmount || 0,
       
       createdAt: new Date().toLocaleString(),
       estimatedDelivery: 'Mañana 17:00 PM',
@@ -111,7 +157,7 @@ export const CreateOrderPage: React.FC = () => {
           user: savedEnteredBy === 'vendedor' ? savedSellerName : mockCustomerProfile.email,
           role: savedRole as any,
           action: 'Pedido Creado',
-          details: `Ingresado por ${savedEnteredBy === 'vendedor' ? `vendedor ${savedSellerName}` : 'cliente directo'}. Zona asignada: ${zoneInfo.zoneName}.`
+          details: `Ingresado por ${savedEnteredBy === 'vendedor' ? `vendedor ${savedSellerName}` : 'cliente directo'}. Zona: ${zoneInfo.zoneName}.${appliedPromo ? ` Descuento aplicado con código ${appliedPromo.code} (-$${appliedPromo.discountAmount.toLocaleString()}).` : ''}`
         }
       ],
 
@@ -125,7 +171,9 @@ export const CreateOrderPage: React.FC = () => {
           body: `Hola ${formData.recipientName}, tu pedido ha sido registrado con éxito.`,
           sent: true
         }
-      ]
+      ],
+
+      whatsappNotifications: []
     };
 
     setCreatedOrder(newOrderData);
@@ -385,20 +433,74 @@ export const CreateOrderPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Total Cost Display Box */}
+            {/* Requirement 1: Promo Code Box */}
+            <div className="mt-6 bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+              <div className="flex items-center space-x-2">
+                <Tag className="w-4 h-4 text-flow-secondary" />
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800">
+                  Código Promocional / Descuento (Opcional)
+                </h4>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-2">
+                <input
+                  type="text"
+                  placeholder="Ej: FLOW10, DESCUENTO20, BIENVENIDA5000, ENVIOFREE"
+                  value={inputPromoCode}
+                  onChange={(e) => setInputPromoCode(e.target.value.toUpperCase())}
+                  className="flex-1 text-xs px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-flow-primary focus:outline-none font-mono font-bold uppercase"
+                />
+                <button
+                  type="button"
+                  onClick={handleApplyPromoCode}
+                  className="px-4 py-2 bg-flow-secondary hover:bg-orange-600 text-white font-bold text-xs rounded-xl shadow transition-colors"
+                >
+                  Aplicar Descuento
+                </button>
+              </div>
+
+              {promoMessage && (
+                <div className={`text-xs font-semibold p-2.5 rounded-xl border flex items-center justify-between ${
+                  promoMessage.isError ? 'bg-rose-50 text-rose-800 border-rose-200' : 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                }`}>
+                  <span>{promoMessage.text}</span>
+                  {appliedPromo && (
+                    <button
+                      type="button"
+                      onClick={handleRemovePromo}
+                      className="text-[10px] underline font-bold ml-2 text-slate-500 hover:text-slate-800"
+                    >
+                      Quitar
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Total Cost & Discount Display Box */}
             <div className="mt-6 bg-slate-900 text-white p-5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="flex items-center space-x-3">
                 <Calculator className="w-8 h-8 text-flow-secondary" />
                 <div>
                   <span className="text-xs font-bold text-slate-300 uppercase">Resumen de Cotización Final</span>
                   <p className="text-[11px] text-slate-400">
-                    Flete Base + {formData.packagesCount} bulto(s) + Seguro (${calculateInsurance().toLocaleString()})
+                    Subtotal: ${calculateSubtotalCost().toLocaleString()} CLP
+                    {appliedPromo && (
+                      <span className="text-emerald-400 font-bold ml-1.5">
+                        • Descuento {appliedPromo.code}: -${appliedPromo.discountAmount.toLocaleString()} CLP
+                      </span>
+                    )}
                   </p>
                 </div>
               </div>
               <div className="text-right">
+                {appliedPromo && (
+                  <span className="block text-xs text-slate-400 line-through">
+                    ${calculateSubtotalCost().toLocaleString()} CLP
+                  </span>
+                )}
                 <span className="text-3xl font-headline font-extrabold text-flow-secondary font-mono">
-                  ${calculateTotalCost().toLocaleString()} CLP
+                  ${calculateFinalTotalCost().toLocaleString()} CLP
                 </span>
               </div>
             </div>
