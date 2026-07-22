@@ -1,32 +1,46 @@
-# React + TypeScript + Vite
+# 🚚 FlowEx - Sistema de Gestión Logística & Envíos (Frontend)
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+![FlowEx CI/CD Pipeline](https://github.com/start-level-cl/Flowex-front/actions/workflows/ci-cd.yml/badge.svg)
+![Vercel Deployment](https://img.shields.io/badge/Vercel-Deployment%20Ready-black?style=flat&logo=vercel)
 
-Currently, two official plugins are available:
+FlowEx es una plataforma web integral de gestión logística, trazabilidad de paquetes, despacho interurbano y administración de rutas para conductores y transportistas.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## 🛠️ Tech Stack & Arquitectura
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+* **Framework**: React 19 + TypeScript + Vite 5
+* **Router**: `react-router-dom` v6 (Con soporte SPA para Vercel rewrites)
+* **Estilos**: TailwindCSS v3.4.17 + PostCSS + Autoprefixer
+* **Iconografía**: `lucide-react`
+* **Design System**: Paleta *Corporate Blue* (`#00236f`), *Vibrant Orange* (`#fd761a`), fuentes *Montserrat* & *Inter*.
 
-## Expanding the Oxlint configuration
+---
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+## 📱 Módulos & Flujos Implementados
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+1. **Portal de Acceso & Roles** (`/`): Selección dinámica entre Operador Admin, Conductor Driver y Cliente Final.
+2. **Dashboard de Pedidos & Auditoría** (`/admin`): Métricas KPI en vivo, lista de paquetes y bitácora de auditoría.
+3. **Gestión Operativa Fase 1** (`/admin/operations`): Consola de operaciones, cambios de estado masivos y asignación de drivers.
+4. **Formulario de Pedido Operativo** (`/admin/create-order`): Registro manual tradicional y cálculo automático de tarifas.
+5. **Nuevo Pedido Inteligente (IA)** (`/admin/smart-order`): Extracción automática de datos desde texto informal e impresión de etiquetas con código de barras.
+6. **Gestión de Ruta Driver** (`/driver/route`): Despacho de entregas, mapa interactivo y secuencia de paradas.
+7. **Mi Ruta Diaria** (`/driver/daily`): Vista ejecutable para smartphones/tablets del repartidor con carga de firma y foto (POD).
+8. **Seguimiento Público** (`/tracking`): Trazabilidad cronológica en tiempo real para clientes finales.
+
+---
+
+## 🚀 Despliegue en Vercel (CI/CD Automático)
+
+Este repositorio cuenta con un pipeline de **GitHub Actions** (`.github/workflows/ci-cd.yml`) configurado para:
+* Ejecutar la compilación y verificación en Node 20 en cada `push` o `pull_request` a `main`.
+* Desplegar automáticamente a **Vercel Production**.
+
+```bash
+# Desarrollo local
+npm install
+npm run dev
+
+# Build de Producción
+npm run build
 ```
-
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
