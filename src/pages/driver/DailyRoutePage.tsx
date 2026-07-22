@@ -1,12 +1,15 @@
-import React, { useState } from 'react';
-import { 
-  Truck, 
-  CheckCircle, 
-  XCircle, 
-  Phone, 
-  MapPin, 
+import React, { useRef, useState } from 'react';
+import {
+  Truck,
+  CheckCircle,
+  XCircle,
+  Phone,
+  MapPin,
   PackageCheck,
-  MessageCircle
+  MessageCircle,
+  Camera,
+  ImagePlus,
+  X
 } from 'lucide-react';
 import { mockOrders } from '../../data/mockData';
 import type { Order, OrderStatus } from '../../types';
@@ -15,10 +18,13 @@ import { PMVRequirementBadge } from '../../components/common/PMVRequirementBadge
 
 export const DailyRoutePage: React.FC = () => {
   const currentDriverEmail = localStorage.getItem('flowex_user_email') || 'rgomez@flowex.cl';
-  
+
   const [driverOrders, setDriverOrders] = useState<Order[]>(mockOrders);
   const [activeTab, setActiveTab] = useState<'pending_route' | 'delivered'>('pending_route');
   const [notificationToast, setNotificationToast] = useState<string | null>(null);
+  const [deliveryPhotoOrder, setDeliveryPhotoOrder] = useState<Order | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const activeDriverOrders = driverOrders.filter(o => {
     if (activeTab === 'pending_route') {
@@ -27,18 +33,20 @@ export const DailyRoutePage: React.FC = () => {
     return o.status === 'delivered' || o.status === 'incident';
   });
 
-  const handleDriverStatusUpdate = (orderId: string, newStatus: OrderStatus) => {
+  const handleDriverStatusUpdate = (orderId: string, newStatus: OrderStatus, photoUrl?: string) => {
     const updatedOrders = driverOrders.map(o => {
       if (o.id === orderId) {
         const actionText = newStatus === 'transit' ? 'En Camino' : newStatus === 'delivered' ? 'Entregado' : 'No Entregado / Incidencia';
-        
+
         const newLog = {
           id: `EV-DRV-${Date.now()}`,
           timestamp: new Date().toLocaleString(),
           user: currentDriverEmail,
           role: 'driver' as const,
           action: `Cambio de Estado en Terreno: ${actionText}`,
-          details: `Actualizado por conductor en terreno.`
+          details: photoUrl
+            ? 'Entrega confirmada por conductor en terreno con foto de respaldo adjunta.'
+            : 'Actualizado por conductor en terreno.'
         };
 
         const triggerEvent = newStatus === 'transit' ? 'in_transit' : newStatus === 'delivered' ? 'delivered' : 'failed';
@@ -78,6 +86,7 @@ export const DailyRoutePage: React.FC = () => {
         return {
           ...o,
           status: newStatus,
+          deliveryPhotoUrl: photoUrl || o.deliveryPhotoUrl,
           eventLogs: [newLog, ...o.eventLogs],
           emailNotifications: [newEmail, ...o.emailNotifications],
           whatsappNotifications: [newWhatsApp, ...(o.whatsappNotifications || [])]
@@ -87,6 +96,32 @@ export const DailyRoutePage: React.FC = () => {
     });
 
     setDriverOrders(updatedOrders);
+  };
+
+  const openDeliveryPhotoModal = (order: Order) => {
+    setPhotoPreview(null);
+    setDeliveryPhotoOrder(order);
+  };
+
+  const closeDeliveryPhotoModal = () => {
+    setDeliveryPhotoOrder(null);
+    setPhotoPreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handlePhotoSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => setPhotoPreview(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const confirmDeliveryWithPhoto = () => {
+    if (!deliveryPhotoOrder || !photoPreview) return;
+    handleDriverStatusUpdate(deliveryPhotoOrder.id, 'delivered', photoPreview);
+    closeDeliveryPhotoModal();
   };
 
   const handleOpenWhatsApp = (order: Order) => {
@@ -218,7 +253,7 @@ export const DailyRoutePage: React.FC = () => {
                 </button>
 
                 <button
-                  onClick={() => handleDriverStatusUpdate(order.id, 'delivered')}
+                  onClick={() => openDeliveryPhotoModal(order)}
                   className="py-2 px-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow transition-colors flex items-center justify-center"
                 >
                   <CheckCircle className="w-3.5 h-3.5 mr-1" /> Entregado
@@ -234,9 +269,20 @@ export const DailyRoutePage: React.FC = () => {
             )}
 
             {order.status === 'delivered' && (
-              <div className="p-3 bg-emerald-50 text-emerald-800 rounded-xl text-xs font-bold text-center border border-emerald-200 flex items-center justify-center space-x-2">
-                <PackageCheck className="w-4 h-4 text-emerald-600" />
-                <span>Entrega Confirmada en Terreno</span>
+              <div className="p-3 bg-emerald-50 text-emerald-800 rounded-xl border border-emerald-200 space-y-2">
+                <div className="flex items-center justify-center space-x-2 text-xs font-bold">
+                  <PackageCheck className="w-4 h-4 text-emerald-600" />
+                  <span>Entrega Confirmada en Terreno</span>
+                </div>
+                {order.deliveryPhotoUrl && (
+                  <div className="flex items-center justify-center">
+                    <img
+                      src={order.deliveryPhotoUrl}
+                      alt={`Foto de entrega ${order.trackingNumber}`}
+                      className="h-20 w-20 object-cover rounded-lg border border-emerald-300 shadow-sm"
+                    />
+                  </div>
+                )}
               </div>
             )}
 
@@ -249,6 +295,85 @@ export const DailyRoutePage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Proof of Delivery Photo Modal */}
+      {deliveryPhotoOrder && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-5 border border-slate-200">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+              <div className="flex items-center space-x-2">
+                <Camera className="w-5 h-5 text-emerald-600" />
+                <h3 className="font-headline font-bold text-slate-900 text-base">Confirmar Entrega con Foto</h3>
+              </div>
+              <button onClick={closeDeliveryPhotoModal} className="text-slate-400 hover:text-slate-600 font-bold">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="bg-slate-50 p-3 rounded-xl text-xs space-y-1 border border-slate-200">
+              <div className="flex justify-between text-slate-600">
+                <span>Guía:</span> <span className="font-mono font-bold text-flow-primary">{deliveryPhotoOrder.trackingNumber}</span>
+              </div>
+              <div className="flex justify-between text-slate-600">
+                <span>Destinatario:</span> <span className="font-semibold">{deliveryPhotoOrder.recipientName}</span>
+              </div>
+            </div>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={handlePhotoSelected}
+              className="hidden"
+            />
+
+            {photoPreview ? (
+              <div className="relative">
+                <img
+                  src={photoPreview}
+                  alt="Vista previa de entrega"
+                  className="w-full h-56 object-cover rounded-xl border border-slate-200"
+                />
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="absolute bottom-2 right-2 px-3 py-1.5 bg-white/90 hover:bg-white text-slate-700 text-[11px] font-bold rounded-lg shadow border border-slate-200"
+                >
+                  Cambiar Foto
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full h-40 flex flex-col items-center justify-center space-y-2 border-2 border-dashed border-slate-300 rounded-xl text-slate-500 hover:border-emerald-400 hover:text-emerald-600 hover:bg-emerald-50/50 transition-colors"
+              >
+                <ImagePlus className="w-8 h-8" />
+                <span className="text-xs font-semibold">Tomar Foto o Subir Evidencia de Entrega</span>
+              </button>
+            )}
+
+            <p className="text-[11px] text-slate-400 text-center">
+              La foto queda adjunta como respaldo de entrega en el registro del pedido.
+            </p>
+
+            <div className="space-y-2">
+              <button
+                onClick={confirmDeliveryWithPhoto}
+                disabled={!photoPreview}
+                className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white font-bold text-xs rounded-xl shadow flex items-center justify-center transition-colors"
+              >
+                <CheckCircle className="w-4 h-4 mr-2" /> Confirmar Entrega
+              </button>
+              <button
+                onClick={closeDeliveryPhotoModal}
+                className="w-full py-2 text-slate-500 hover:text-slate-700 font-medium text-xs text-center"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  CreditCard, 
-  Clock, 
-  CheckCircle2, 
-  MapPin, 
-  ArrowRight, 
+import {
+  CreditCard,
+  Clock,
+  CheckCircle2,
+  MapPin,
+  ArrowRight,
   ShieldCheck,
-  Plus
+  Plus,
+  Layers
 } from 'lucide-react';
 import { mockOrders, mockCustomerProfile } from '../../data/mockData';
 import type { Order } from '../../types';
@@ -20,7 +21,8 @@ export const CustomerOrdersPage: React.FC = () => {
 
   const [orders, setOrders] = useState<Order[]>(mockOrders);
   const [activeTab, setActiveTab] = useState<'unpaid' | 'paid_all'>('unpaid');
-  const [selectedOrderForPayment, setSelectedOrderForPayment] = useState<Order | null>(null);
+  const [selectedOrderIds, setSelectedOrderIds] = useState<Set<string>>(new Set());
+  const [ordersToPay, setOrdersToPay] = useState<Order[]>([]);
   const [paymentSuccessToast, setPaymentSuccessToast] = useState<string | null>(null);
 
   // Filter orders for the logged customer
@@ -29,52 +31,78 @@ export const CustomerOrdersPage: React.FC = () => {
   const unpaidOrders = customerOrders.filter(o => !o.isPaid);
   const paidOrders = customerOrders.filter(o => o.isPaid);
 
+  const selectedOrders = unpaidOrders.filter(o => selectedOrderIds.has(o.id));
+  const selectedTotal = selectedOrders.reduce((sum, o) => sum + o.totalCost, 0);
+
+  const toggleSelectOrder = (orderId: string) => {
+    setSelectedOrderIds(prev => {
+      const next = new Set(prev);
+      if (next.has(orderId)) {
+        next.delete(orderId);
+      } else {
+        next.add(orderId);
+      }
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    setSelectedOrderIds(prev =>
+      prev.size === unpaidOrders.length ? new Set() : new Set(unpaidOrders.map(o => o.id))
+    );
+  };
+
   const handlePayOrder = (method: 'webpay' | 'credit_card' | 'transfer') => {
-    if (!selectedOrderForPayment) return;
+    if (ordersToPay.length === 0) return;
 
     const currentRole = (localStorage.getItem('flowex_user_role') || 'customer') as any;
     const currentEmail = localStorage.getItem('flowex_user_email') || customerEmail;
+    const payingIds = new Set(ordersToPay.map(o => o.id));
+    const isBatch = ordersToPay.length > 1;
+    const paidAtStr = new Date().toLocaleString();
+    const txId = `TX-${method.toUpperCase()}-${Math.floor(10000 + Math.random() * 90000)}`;
 
     setOrders(prev => prev.map(o => {
-      if (o.id === selectedOrderForPayment.id) {
-        const txId = `TX-${method.toUpperCase()}-${Math.floor(10000 + Math.random() * 90000)}`;
-        const paidAtStr = new Date().toLocaleString();
+      if (!payingIds.has(o.id)) return o;
 
-        const payLog = {
-          id: `EV-PAY-${Date.now()}`,
-          timestamp: paidAtStr,
-          user: currentEmail,
-          role: currentRole,
-          action: 'Pago Exitoso Realizado por Cliente',
-          details: `Pago de $${o.totalCost.toLocaleString()} procesado por ${method.toUpperCase()} (${txId}).`
-        };
+      const payLog = {
+        id: `EV-PAY-${Date.now()}-${o.id}`,
+        timestamp: paidAtStr,
+        user: currentEmail,
+        role: currentRole,
+        action: 'Pago Exitoso Realizado por Cliente',
+        details: `Pago de $${o.totalCost.toLocaleString()} procesado por ${method.toUpperCase()} (${txId}).${isBatch ? ` Pago múltiple agrupado (${ordersToPay.length} envíos).` : ''}`
+      };
 
-        const payEmail = {
-          id: `EM-PAY-${Date.now()}`,
-          timestamp: paidAtStr,
-          recipientEmail: o.recipientEmail,
-          triggerEvent: 'order_created' as const,
-          subject: `FlowEx: Pago Aprobado para Envío ${o.trackingNumber}`,
-          body: `Hola ${o.recipientName}, confirmamos que el envío ${o.trackingNumber} fue pagado y está listo para despacho.`,
-          sent: true
-        };
+      const payEmail = {
+        id: `EM-PAY-${Date.now()}-${o.id}`,
+        timestamp: paidAtStr,
+        recipientEmail: o.recipientEmail,
+        triggerEvent: 'order_created' as const,
+        subject: `FlowEx: Pago Aprobado para Envío ${o.trackingNumber}`,
+        body: `Hola ${o.recipientName}, confirmamos que el envío ${o.trackingNumber} fue pagado y está listo para despacho.`,
+        sent: true
+      };
 
-        return {
-          ...o,
-          isPaid: true,
-          status: 'paid' as const,
-          paymentMethod: method,
-          paymentTransactionId: txId,
-          paidAt: paidAtStr,
-          eventLogs: [payLog, ...o.eventLogs],
-          emailNotifications: [payEmail, ...o.emailNotifications]
-        };
-      }
-      return o;
+      return {
+        ...o,
+        isPaid: true,
+        status: 'paid' as const,
+        paymentMethod: method,
+        paymentTransactionId: txId,
+        paidAt: paidAtStr,
+        eventLogs: [payLog, ...o.eventLogs],
+        emailNotifications: [payEmail, ...o.emailNotifications]
+      };
     }));
 
-    setPaymentSuccessToast(`¡Pago Aprobado! El envío ${selectedOrderForPayment.trackingNumber} cambió a estado Pagado.`);
-    setSelectedOrderForPayment(null);
+    setPaymentSuccessToast(
+      isBatch
+        ? `¡Pago Aprobado! ${ordersToPay.length} envíos por $${ordersToPay.reduce((s, o) => s + o.totalCost, 0).toLocaleString()} CLP cambiaron a estado Pagado.`
+        : `¡Pago Aprobado! El envío ${ordersToPay[0].trackingNumber} cambió a estado Pagado.`
+    );
+    setOrdersToPay([]);
+    setSelectedOrderIds(new Set());
     setTimeout(() => setPaymentSuccessToast(null), 5000);
   };
 
@@ -152,13 +180,41 @@ export const CustomerOrdersPage: React.FC = () => {
       {/* Orders View */}
       {activeTab === 'unpaid' ? (
         <div className="space-y-4">
-          {unpaidOrders.map(order => (
-            <div key={order.id} className="bg-white p-6 rounded-2xl border-2 border-amber-200/80 shadow-sm space-y-4 hover:border-amber-400 transition-all">
-              
+          {unpaidOrders.length > 0 && (
+            <label className="flex items-center space-x-2 px-1 text-xs font-semibold text-slate-600 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={selectedOrderIds.size === unpaidOrders.length}
+                onChange={toggleSelectAll}
+                className="w-4 h-4 accent-flow-secondary rounded cursor-pointer"
+              />
+              <span>Seleccionar todos ({unpaidOrders.length})</span>
+            </label>
+          )}
+
+          {unpaidOrders.map(order => {
+            const isSelected = selectedOrderIds.has(order.id);
+            return (
+            <div
+              key={order.id}
+              className={`bg-white p-6 rounded-2xl border-2 shadow-sm space-y-4 transition-all ${
+                isSelected ? 'border-flow-secondary ring-2 ring-orange-100' : 'border-amber-200/80 hover:border-amber-400'
+              }`}
+            >
+
               <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 gap-2">
-                <div>
-                  <span className="text-[10px] font-mono font-bold text-slate-400 uppercase">Número de Guía</span>
-                  <h3 className="text-xl font-headline font-bold text-flow-primary font-mono">{order.trackingNumber}</h3>
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => toggleSelectOrder(order.id)}
+                    className="w-5 h-5 accent-flow-secondary rounded cursor-pointer flex-shrink-0"
+                    aria-label={`Seleccionar envío ${order.trackingNumber}`}
+                  />
+                  <div>
+                    <span className="text-[10px] font-mono font-bold text-slate-400 uppercase">Número de Guía</span>
+                    <h3 className="text-xl font-headline font-bold text-flow-primary font-mono">{order.trackingNumber}</h3>
+                  </div>
                 </div>
                 <div className="flex items-center space-x-2">
                   <span className="text-xs bg-amber-100 text-amber-800 font-bold px-3 py-1 rounded-full border border-amber-300 inline-flex items-center">
@@ -200,7 +256,7 @@ export const CustomerOrdersPage: React.FC = () => {
                 </button>
 
                 <button
-                  onClick={() => setSelectedOrderForPayment(order)}
+                  onClick={() => setOrdersToPay([order])}
                   className="px-5 py-2.5 bg-gradient-to-r from-flow-secondary to-orange-500 hover:from-orange-600 hover:to-orange-600 text-white font-bold text-xs rounded-xl shadow-md flex items-center transition-all"
                 >
                   <CreditCard className="w-4 h-4 mr-2" /> Pagar Ahora (${order.totalCost.toLocaleString()} CLP)
@@ -208,7 +264,8 @@ export const CustomerOrdersPage: React.FC = () => {
               </div>
 
             </div>
-          ))}
+            );
+          })}
 
           {unpaidOrders.length === 0 && (
             <div className="bg-white p-12 rounded-2xl border border-slate-200 text-center space-y-3">
@@ -217,6 +274,33 @@ export const CustomerOrdersPage: React.FC = () => {
               <p className="text-xs text-slate-500 max-w-sm mx-auto">
                 Todos tus envíos creados han sido pagados y procesados para entrega.
               </p>
+            </div>
+          )}
+
+          {/* Floating Batch Payment Bar */}
+          {selectedOrders.length > 0 && (
+            <div className="sticky bottom-4 z-20 bg-slate-900 text-white p-4 rounded-2xl shadow-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center space-x-2 text-xs">
+                <Layers className="w-5 h-5 text-flow-secondary flex-shrink-0" />
+                <span className="font-semibold">
+                  {selectedOrders.length} envío{selectedOrders.length > 1 ? 's' : ''} seleccionado{selectedOrders.length > 1 ? 's' : ''} · Total{' '}
+                  <span className="font-mono font-bold text-flow-secondary">${selectedTotal.toLocaleString()} CLP</span>
+                </span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setSelectedOrderIds(new Set())}
+                  className="px-3 py-2 text-xs font-medium text-slate-300 hover:text-white"
+                >
+                  Limpiar
+                </button>
+                <button
+                  onClick={() => setOrdersToPay(selectedOrders)}
+                  className="px-5 py-2.5 bg-gradient-to-r from-flow-secondary to-orange-500 hover:from-orange-600 hover:to-orange-600 text-white font-bold text-xs rounded-xl shadow-md flex items-center transition-all"
+                >
+                  <CreditCard className="w-4 h-4 mr-2" /> Pagar Seleccionados (${selectedTotal.toLocaleString()} CLP)
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -252,28 +336,39 @@ export const CustomerOrdersPage: React.FC = () => {
         </div>
       )}
 
-      {/* Embedded Payment Modal */}
-      {selectedOrderForPayment && (
+      {/* Embedded Payment Modal (supports single or multiple grouped orders) */}
+      {ordersToPay.length > 0 && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-6 border border-slate-200">
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
               <div className="flex items-center space-x-2">
-                <CreditCard className="w-5 h-5 text-flow-secondary" />
-                <h3 className="font-headline font-bold text-slate-900 text-base">Pagar Envío Pendiente</h3>
+                {ordersToPay.length > 1 ? (
+                  <Layers className="w-5 h-5 text-flow-secondary" />
+                ) : (
+                  <CreditCard className="w-5 h-5 text-flow-secondary" />
+                )}
+                <h3 className="font-headline font-bold text-slate-900 text-base">
+                  {ordersToPay.length > 1 ? `Pagar ${ordersToPay.length} Envíos Seleccionados` : 'Pagar Envío Pendiente'}
+                </h3>
               </div>
-              <button onClick={() => setSelectedOrderForPayment(null)} className="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+              <button onClick={() => setOrdersToPay([])} className="text-slate-400 hover:text-slate-600 font-bold">✕</button>
             </div>
 
-            <div className="bg-slate-50 p-4 rounded-xl text-xs space-y-2 border border-slate-200">
-              <div className="flex justify-between text-slate-600">
-                <span>Guía:</span> <span className="font-mono font-bold text-flow-primary">{selectedOrderForPayment.trackingNumber}</span>
-              </div>
-              <div className="flex justify-between text-slate-600">
-                <span>Destinatario:</span> <span className="font-semibold">{selectedOrderForPayment.recipientName}</span>
-              </div>
+            <div className="bg-slate-50 p-4 rounded-xl text-xs space-y-2 border border-slate-200 max-h-48 overflow-y-auto">
+              {ordersToPay.map(o => (
+                <div key={o.id} className="flex justify-between text-slate-600 border-b border-slate-200 last:border-b-0 pb-1.5 last:pb-0">
+                  <span>
+                    <span className="font-mono font-bold text-flow-primary">{o.trackingNumber}</span>
+                    <span className="ml-1.5 text-slate-500">({o.recipientName})</span>
+                  </span>
+                  <span className="font-semibold text-slate-800">${o.totalCost.toLocaleString()}</span>
+                </div>
+              ))}
               <div className="flex justify-between text-slate-900 font-bold text-sm border-t border-slate-200 pt-2">
-                <span>Monto a Pagar:</span>
-                <span className="text-flow-secondary font-mono">${selectedOrderForPayment.totalCost.toLocaleString()} CLP</span>
+                <span>Monto Total a Pagar:</span>
+                <span className="text-flow-secondary font-mono">
+                  ${ordersToPay.reduce((sum, o) => sum + o.totalCost, 0).toLocaleString()} CLP
+                </span>
               </div>
             </div>
 
@@ -292,7 +387,7 @@ export const CustomerOrdersPage: React.FC = () => {
                 Transferencia Bancaria Directa
               </button>
               <button
-                onClick={() => setSelectedOrderForPayment(null)}
+                onClick={() => setOrdersToPay([])}
                 className="w-full py-2 text-slate-500 hover:text-slate-700 font-medium text-xs text-center"
               >
                 Cancelar

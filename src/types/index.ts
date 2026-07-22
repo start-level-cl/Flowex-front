@@ -84,6 +84,9 @@ export interface Order {
   // Dispatch
   assignedDriverId?: string;
   assignedDriverName?: string;
+
+  // Proof of Delivery
+  deliveryPhotoUrl?: string;
   
   // Financials
   baseCost: number;
