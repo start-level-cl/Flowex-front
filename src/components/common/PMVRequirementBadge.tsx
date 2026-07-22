@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle2, Bookmark } from 'lucide-react';
+import { Bookmark } from 'lucide-react';
 
 interface RequirementItem {
   num: number;
