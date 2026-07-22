@@ -1,73 +1,96 @@
-export type UserRole = 'admin' | 'driver' | 'customer' | null;
+export type UserRole = 'admin' | 'driver' | 'customer';
 
 export type OrderStatus = 'pending' | 'paid' | 'transit' | 'delivered' | 'incident';
+
+export interface EventLog {
+  id: string;
+  timestamp: string;
+  user: string;
+  role: UserRole | 'Sistema';
+  action: string;
+  details: string;
+}
+
+export interface EmailNotification {
+  id: string;
+  timestamp: string;
+  recipientEmail: string;
+  triggerEvent: 'order_created' | 'in_transit' | 'delivered' | 'failed';
+  subject: string;
+  body: string;
+  sent: boolean;
+}
+
+export interface CustomerProfile {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  savedAddresses: {
+    address: string;
+    commune: string;
+  }[];
+  createdBy: 'cliente' | 'vendedor';
+  sellerName?: string;
+}
 
 export interface Order {
   id: string;
   trackingNumber: string;
+  // Customer & Seller Metadata
+  enteredBy: 'cliente' | 'vendedor';
+  sellerName?: string;
+  customerEmail: string;
   senderName: string;
   senderPhone: string;
   senderAddress: string;
-  senderCity: string;
+  senderCommune: string;
+  
+  // Recipient
   recipientName: string;
   recipientPhone: string;
+  recipientEmail: string;
   recipientAddress: string;
-  recipientCity: string;
+  recipientCommune: string;
+  
+  // Package & Coverage
+  packagesCount: number;
   packageType: string;
   weightKg: number;
   declaredValue: number;
+  insuranceCost: number;
+  shippingType: 'normal' | 'express' | 'same_day';
+  
+  // Automatic Zoning
+  zone: string;
+  
+  // Status & Payment
   status: OrderStatus;
-  createdAt: string;
-  estimatedDelivery: string;
-  currentLocation?: string;
+  isPaid: boolean;
+  paymentMethod?: 'webpay' | 'credit_card' | 'transfer';
+  paymentTransactionId?: string;
+  paidAt?: string;
+  
+  // Dispatch
   assignedDriverId?: string;
   assignedDriverName?: string;
-  hubOrigin: string;
-  hubDestination: string;
+  
+  // Financials
+  baseCost: number;
   totalCost: number;
+  
+  createdAt: string;
+  estimatedDelivery: string;
   notes?: string;
-  timeline: {
-    title: string;
-    timestamp: string;
-    location: string;
-    completed: boolean;
-    description?: string;
-  }[];
+
+  // Logs & Notifications
+  eventLogs: EventLog[];
+  emailNotifications: EmailNotification[];
 }
 
-export interface DriverStop {
-  id: string;
-  sequence: number;
-  trackingNumber: string;
-  recipientName: string;
-  address: string;
-  city: string;
-  phone: string;
-  packagesCount: number;
-  timeWindow: string;
-  status: 'pending' | 'in_progress' | 'delivered' | 'failed';
-  notes?: string;
-}
-
-export interface DriverRoute {
-  id: string;
-  driverId: string;
-  driverName: string;
-  vehiclePlate: string;
-  zone: string;
-  totalStops: number;
-  completedStops: number;
-  pendingStops: number;
-  totalDistanceKm: number;
-  estimatedHours: number;
-  stops: DriverStop[];
-}
-
-export interface AuditLog {
-  id: string;
-  timestamp: string;
-  user: string;
-  action: string;
-  trackingNumber: string;
-  details: string;
+export interface CoverageZone {
+  commune: string;
+  region: string;
+  zoneName: string;
+  hasCoverage: boolean;
 }

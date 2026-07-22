@@ -12,19 +12,27 @@ import { TrackingPage } from './pages/public/TrackingPage';
 import type { UserRole } from './types';
 
 export const App: React.FC = () => {
-  const [currentRole, setRole] = useState<UserRole>('admin');
+  const [currentRole, setRole] = useState<UserRole>(
+    (localStorage.getItem('flowex_user_role') as UserRole) || 'admin'
+  );
+  const [, setUserEmail] = useState<string>(
+    localStorage.getItem('flowex_user_email') || 'admin@flowex.cl'
+  );
 
   return (
     <BrowserRouter>
       <Layout currentRole={currentRole} setRole={setRole}>
         <Routes>
-          <Route path="/" element={<LoginPage setRole={setRole} />} />
+          <Route path="/" element={<LoginPage setRole={setRole} setUserEmail={setUserEmail} />} />
           
           {/* Admin Routes */}
           <Route path="/admin" element={<DashboardPage />} />
           <Route path="/admin/operations" element={<OperationsPage />} />
           <Route path="/admin/create-order" element={<CreateOrderPage />} />
           <Route path="/admin/smart-order" element={<SmartOrderPage />} />
+
+          {/* Customer Route */}
+          <Route path="/customer/create" element={<CreateOrderPage />} />
 
           {/* Driver Routes */}
           <Route path="/driver/route" element={<RouteDispatchPage />} />

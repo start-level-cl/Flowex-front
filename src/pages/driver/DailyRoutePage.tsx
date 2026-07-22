@@ -1,231 +1,218 @@
 import React, { useState } from 'react';
 import { 
-  Smartphone, 
-  Monitor, 
-  MapPin, 
+  Truck, 
   CheckCircle, 
   XCircle, 
-  Camera, 
   Phone, 
-  Navigation
+  MapPin, 
+  Clock, 
+  Mail, 
+  AlertCircle,
+  PackageCheck
 } from 'lucide-react';
-import { mockDriverRoute } from '../../data/mockData';
+import { mockOrders } from '../../data/mockData';
+import type { Order, OrderStatus } from '../../types';
+import { StatusBadge } from '../../components/common/StatusBadge';
 
 export const DailyRoutePage: React.FC = () => {
-  const [viewMode, setViewMode] = useState<'mobile' | 'desktop'>('mobile');
-  const [stops, setStops] = useState(mockDriverRoute.stops);
-  const [activeStopId, setActiveStopId] = useState<string>('STOP-03');
-  const [podPhotoUploaded, setPodPhotoUploaded] = useState(false);
-  const [signatureName, setSignatureName] = useState('');
+  const currentDriverEmail = localStorage.getItem('flowex_user_email') || 'rgomez@flowex.cl';
+  
+  // Requerimiento 6: Ruta del día generada automáticamente (Pagados + Pendientes)
+  const [driverOrders, setDriverOrders] = useState<Order[]>(mockOrders);
+  const [activeTab, setActiveTab] = useState<'pending_route' | 'delivered'>('pending_route');
+  const [notificationToast, setNotificationToast] = useState<string | null>(null);
 
-  const activeStop = stops.find(s => s.id === activeStopId) || stops[0];
+  const activeDriverOrders = driverOrders.filter(o => {
+    if (activeTab === 'pending_route') {
+      return o.status === 'paid' || o.status === 'pending' || o.status === 'transit';
+    }
+    return o.status === 'delivered' || o.status === 'incident';
+  });
 
-  const handleMarkDelivered = (stopId: string) => {
-    setStops(prev => prev.map(s => s.id === stopId ? { ...s, status: 'delivered', notes: `Entregado a ${signatureName || 'destinatario'}.` } : s));
-    setPodPhotoUploaded(false);
-    setSignatureName('');
-  };
+  // Requerimiento 7 & 11: Cambio de estado en terreno + Notificación automática por correo
+  const handleDriverStatusUpdate = (orderId: string, newStatus: OrderStatus) => {
+    const updatedOrders = driverOrders.map(o => {
+      if (o.id === orderId) {
+        const actionText = newStatus === 'transit' ? 'En Camino' : newStatus === 'delivered' ? 'Entregado' : 'No Entregado / Incidencia';
+        
+        const newLog = {
+          id: `EV-DRV-${Date.now()}`,
+          timestamp: new Date().toLocaleString(),
+          user: currentDriverEmail,
+          role: 'driver' as const,
+          action: `Cambio de Estado en Terreno: ${actionText}`,
+          details: `Actualizado por conductor en terreno.`
+        };
 
-  const handleMarkFailed = (stopId: string) => {
-    setStops(prev => prev.map(s => s.id === stopId ? { ...s, status: 'failed', notes: 'Intento fallido: Sin respuesta en timbre.' } : s));
+        const triggerEvent = newStatus === 'transit' ? 'in_transit' : newStatus === 'delivered' ? 'delivered' : 'failed';
+        const emailSubject = newStatus === 'transit' 
+          ? `FlowEx: Tu envío ${o.trackingNumber} va en camino`
+          : newStatus === 'delivered'
+          ? `FlowEx: Tu envío ${o.trackingNumber} ha sido entregado exitosamente`
+          : `FlowEx: Intento de entrega no completado para ${o.trackingNumber}`;
+
+        const newEmail = {
+          id: `EM-DRV-${Date.now()}`,
+          timestamp: new Date().toLocaleString(),
+          recipientEmail: o.recipientEmail,
+          triggerEvent: triggerEvent as any,
+          subject: emailSubject,
+          body: `Hola ${o.recipientName}, notificamos que tu paquete cambió de estado a ${actionText}.`,
+          sent: true
+        };
+
+        setNotificationToast(`✉️ Correo automático enviado a ${o.recipientEmail} (${emailSubject})`);
+        setTimeout(() => setNotificationToast(null), 4500);
+
+        return {
+          ...o,
+          status: newStatus,
+          eventLogs: [newLog, ...o.eventLogs],
+          emailNotifications: [newEmail, ...o.emailNotifications]
+        };
+      }
+      return o;
+    });
+
+    setDriverOrders(updatedOrders);
   };
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6">
       
-      {/* View Switcher Header */}
-      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <span className="text-[10px] font-bold text-flow-secondary uppercase tracking-wider bg-orange-50 px-2.5 py-1 rounded-full border border-orange-200">
-            Ejecución de Reparto en Vivo
-          </span>
-          <h1 className="text-xl font-headline font-bold text-slate-900 mt-1">
-            Mi Ruta Diaria (Conductor)
-          </h1>
+      {/* Toast Notification Alert */}
+      {notificationToast && (
+        <div className="bg-emerald-600 text-white p-4 rounded-2xl shadow-xl flex items-center justify-between text-xs font-semibold animate-pulse">
+          <div className="flex items-center space-x-2">
+            <Mail className="w-5 h-5 text-white" />
+            <span>{notificationToast}</span>
+          </div>
+          <button onClick={() => setNotificationToast(null)} className="font-bold text-white">✕</button>
+        </div>
+      )}
+
+      {/* Driver Simple Header (Requerimiento 6 & 7) */}
+      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+        <div className="flex justify-between items-start">
+          <div>
+            <span className="text-[10px] font-bold text-flow-secondary uppercase tracking-wider bg-orange-50 px-2.5 py-0.5 rounded-full border border-orange-200">
+              Requerimientos 6, 7 & 11
+            </span>
+            <h1 className="text-xl font-headline font-bold text-slate-900 mt-1">
+              Ruta del Día (Vista Conductor)
+            </h1>
+            <p className="text-xs text-slate-600">
+              Conductor: <span className="font-semibold text-slate-900">{currentDriverEmail}</span> | Generada automáticamente.
+            </p>
+          </div>
+          <div className="w-10 h-10 bg-orange-100 text-flow-secondary rounded-xl flex items-center justify-center font-bold">
+            <Truck className="w-6 h-6" />
+          </div>
         </div>
 
-        {/* View Toggle */}
-        <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs">
+        {/* Tab Selection */}
+        <div className="flex space-x-2 pt-2 text-xs border-t border-slate-100">
           <button
-            onClick={() => setViewMode('mobile')}
-            className={`flex items-center px-3 py-1.5 rounded-lg font-semibold transition-all ${
-              viewMode === 'mobile' ? 'bg-flow-secondary text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+            onClick={() => setActiveTab('pending_route')}
+            className={`flex-1 py-2 rounded-xl font-bold transition-all ${
+              activeTab === 'pending_route'
+                ? 'bg-flow-secondary text-white shadow'
+                : 'bg-slate-100 text-slate-600'
             }`}
           >
-            <Smartphone className="w-4 h-4 mr-1.5" /> Vista Móvil (Driver App)
+            Pendientes del Día ({driverOrders.filter(o => o.status === 'paid' || o.status === 'pending' || o.status === 'transit').length})
           </button>
           <button
-            onClick={() => setViewMode('desktop')}
-            className={`flex items-center px-3 py-1.5 rounded-lg font-semibold transition-all ${
-              viewMode === 'desktop' ? 'bg-flow-primary text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+            onClick={() => setActiveTab('delivered')}
+            className={`flex-1 py-2 rounded-xl font-bold transition-all ${
+              activeTab === 'delivered'
+                ? 'bg-emerald-600 text-white shadow'
+                : 'bg-slate-100 text-slate-600'
             }`}
           >
-            <Monitor className="w-4 h-4 mr-1.5" /> Vista Consola (Desktop)
+            Finalizados ({driverOrders.filter(o => o.status === 'delivered' || o.status === 'incident').length})
           </button>
         </div>
       </div>
 
-      {viewMode === 'mobile' ? (
-        /* Mobile Simulator Layout */
-        <div className="max-w-sm mx-auto bg-slate-950 rounded-[40px] p-4 shadow-2xl border-4 border-slate-800">
-          
-          {/* Smartphone Screen Content */}
-          <div className="bg-slate-50 rounded-[32px] overflow-hidden text-slate-900 min-h-[640px] flex flex-col justify-between">
+      {/* Orders List (Vista Simple Terreno) */}
+      <div className="space-y-4">
+        {activeDriverOrders.map((order, idx) => (
+          <div key={order.id} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
             
-            {/* Mobile Header Bar */}
-            <div className="bg-flow-primary text-white p-4 pt-6 space-y-2">
-              <div className="flex justify-between items-center text-xs font-mono">
-                <span>09:41 AM</span>
-                <span>GPS Batería 94%</span>
-              </div>
-              <div className="flex justify-between items-end pt-1">
-                <div>
-                  <span className="text-[10px] text-blue-200 uppercase font-bold">Ruta Viña Z-3</span>
-                  <h2 className="text-base font-bold font-headline leading-tight">Roberto Gómez</h2>
-                </div>
-                <span className="text-xs bg-flow-secondary px-2 py-0.5 rounded-full font-bold">
-                  Parada {activeStop.sequence} de {stops.length}
+            <div className="flex justify-between items-start border-b border-slate-100 pb-3">
+              <div>
+                <span className="text-[10px] font-bold text-flow-primary font-mono bg-blue-50 px-2 py-0.5 rounded">
+                  Parada #{idx + 1} • {order.trackingNumber}
                 </span>
+                <h3 className="text-base font-bold text-slate-900 mt-1">{order.recipientName}</h3>
               </div>
+              <StatusBadge status={order.status} size="sm" />
             </div>
 
-            {/* Active Stop Card */}
-            <div className="p-4 space-y-4 overflow-y-auto flex-1">
-              
-              {/* Select Active Stop Pills */}
-              <div className="flex space-x-2 overflow-x-auto pb-2">
-                {stops.map(s => (
-                  <button
-                    key={s.id}
-                    onClick={() => setActiveStopId(s.id)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap border ${
-                      activeStopId === s.id
-                        ? 'bg-flow-secondary text-white border-flow-secondary shadow-md'
-                        : s.status === 'delivered'
-                        ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                        : 'bg-white text-slate-700 border-slate-200'
-                    }`}
-                  >
-                    #{s.sequence} {s.recipientName.split(' ')[0]}
-                  </button>
-                ))}
+            <div className="text-xs space-y-1.5 text-slate-700">
+              <p className="flex items-center font-medium text-slate-900">
+                <MapPin className="w-4 h-4 mr-1.5 text-flow-secondary flex-shrink-0" />
+                {order.recipientAddress}, <span className="font-bold text-flow-primary ml-1">{order.recipientCommune}</span>
+              </p>
+              <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1">
+                <span><Phone className="w-3.5 h-3.5 inline mr-1" />{order.recipientPhone}</span>
+                <span>Bultos: <strong className="text-slate-800">{order.packagesCount}</strong></span>
+                <span>Zona: <strong className="text-flow-primary">{order.zone}</strong></span>
               </div>
-
-              {/* Stop Detail Card */}
-              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-                <div className="flex justify-between items-start border-b border-slate-100 pb-2">
-                  <div>
-                    <span className="text-[10px] font-mono font-bold text-flow-primary">{activeStop.trackingNumber}</span>
-                    <h3 className="text-sm font-bold text-slate-900">{activeStop.recipientName}</h3>
-                  </div>
-                  <a href={`tel:${activeStop.phone}`} className="p-2 bg-emerald-50 text-emerald-700 rounded-full hover:bg-emerald-100">
-                    <Phone className="w-4 h-4" />
-                  </a>
+              {order.notes && (
+                <div className="p-2 bg-amber-50 text-amber-800 rounded-lg text-[11px] border border-amber-200 font-medium">
+                  Nota: {order.notes}
                 </div>
+              )}
+            </div>
 
-                <div className="text-xs space-y-1 text-slate-600">
-                  <p className="flex items-center text-slate-900 font-medium">
-                    <MapPin className="w-3.5 h-3.5 mr-1 text-flow-secondary flex-shrink-0" />
-                    {activeStop.address}, {activeStop.city}
-                  </p>
-                  <p className="text-[11px] text-slate-500">Ventana Horaria: {activeStop.timeWindow}</p>
-                  {activeStop.notes && (
-                    <div className="p-2 bg-amber-50 text-amber-800 rounded-lg text-[11px] border border-amber-200 font-medium">
-                      Nota: {activeStop.notes}
-                    </div>
-                  )}
-                </div>
+            {/* Requerimiento 7: Cambio de estado directo en terreno (Vista simple) */}
+            {order.status !== 'delivered' && (
+              <div className="pt-2 border-t border-slate-100 grid grid-cols-3 gap-2">
+                <button
+                  onClick={() => handleDriverStatusUpdate(order.id, 'transit')}
+                  className={`py-2 px-2 rounded-xl text-xs font-bold transition-all border ${
+                    order.status === 'transit'
+                      ? 'bg-blue-600 text-white border-blue-600 shadow'
+                      : 'bg-blue-50 text-blue-800 border-blue-200 hover:bg-blue-100'
+                  }`}
+                >
+                  En Camino
+                </button>
 
-                {/* POD Section */}
-                {activeStop.status !== 'delivered' && (
-                  <div className="pt-2 border-t border-slate-100 space-y-3">
-                    <div className="text-[11px] font-bold text-slate-700 uppercase">Comprobante de Entrega (POD):</div>
-                    
-                    <button
-                      onClick={() => setPodPhotoUploaded(!podPhotoUploaded)}
-                      className={`w-full py-2 px-3 border border-dashed rounded-xl text-xs font-semibold flex items-center justify-center transition-colors ${
-                        podPhotoUploaded ? 'bg-emerald-50 border-emerald-400 text-emerald-700' : 'bg-slate-50 border-slate-300 text-slate-600'
-                      }`}
-                    >
-                      <Camera className="w-4 h-4 mr-2" />
-                      {podPhotoUploaded ? '✓ Foto de Entrega Capturada' : 'Tomar Foto del Paquete / Timbre'}
-                    </button>
+                <button
+                  onClick={() => handleDriverStatusUpdate(order.id, 'delivered')}
+                  className="py-2 px-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow transition-colors flex items-center justify-center"
+                >
+                  <CheckCircle className="w-3.5 h-3.5 mr-1" /> Entregado
+                </button>
 
-                    <input
-                      type="text"
-                      placeholder="Nombre / RUT de quien recibe..."
-                      value={signatureName}
-                      onChange={(e) => setSignatureName(e.target.value)}
-                      className="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-flow-secondary focus:outline-none"
-                    />
-
-                    <div className="grid grid-cols-2 gap-2 pt-1">
-                      <button
-                        onClick={() => handleMarkDelivered(activeStop.id)}
-                        className="py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow flex items-center justify-center"
-                      >
-                        <CheckCircle className="w-4 h-4 mr-1" /> Entregado
-                      </button>
-                      <button
-                        onClick={() => handleMarkFailed(activeStop.id)}
-                        className="py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs rounded-xl border border-rose-200 flex items-center justify-center"
-                      >
-                        <XCircle className="w-4 h-4 mr-1" /> Novedad
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {activeStop.status === 'delivered' && (
-                  <div className="p-3 bg-emerald-50 text-emerald-800 rounded-xl text-xs font-bold text-center border border-emerald-200">
-                    ✓ Entrega Registrada Exitosamente
-                  </div>
-                )}
+                <button
+                  onClick={() => handleDriverStatusUpdate(order.id, 'incident')}
+                  className="py-2 px-2 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl text-xs font-bold border border-rose-200 transition-colors flex items-center justify-center"
+                >
+                  <XCircle className="w-3.5 h-3.5 mr-1" /> No Entregado
+                </button>
               </div>
+            )}
 
-            </div>
-
-            {/* Navigation Footer Button */}
-            <div className="p-4 bg-white border-t border-slate-200">
-              <button 
-                onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(activeStop.address + ', ' + activeStop.city)}`, '_blank')}
-                className="w-full py-3 bg-flow-primary text-white font-bold text-xs rounded-xl flex items-center justify-center shadow"
-              >
-                <Navigation className="w-4 h-4 mr-2 text-flow-secondary" /> Iniciar Navegación GPS Waze / Maps
-              </button>
-            </div>
+            {order.status === 'delivered' && (
+              <div className="p-3 bg-emerald-50 text-emerald-800 rounded-xl text-xs font-bold text-center border border-emerald-200 flex items-center justify-center space-x-2">
+                <PackageCheck className="w-4 h-4 text-emerald-600" />
+                <span>Entrega Confirmada en Terreno</span>
+              </div>
+            )}
 
           </div>
+        ))}
 
-        </div>
-      ) : (
-        /* Desktop View Layout */
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
-          <h2 className="text-lg font-headline font-bold text-slate-900">Hoja de Ruta Diaria (Consola Conductor Desktop)</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {stops.map(stop => (
-              <div key={stop.id} className="p-4 rounded-xl border border-slate-200 bg-slate-50/60 space-y-2">
-                <div className="flex justify-between font-bold text-xs">
-                  <span className="text-flow-primary">Parada #{stop.sequence} - {stop.trackingNumber}</span>
-                  <span className="text-slate-500">{stop.timeWindow}</span>
-                </div>
-                <div className="text-sm font-bold text-slate-900">{stop.recipientName}</div>
-                <div className="text-xs text-slate-600">{stop.address}, {stop.city}</div>
-                <div className="pt-2 flex justify-between items-center text-xs">
-                  <span className="font-mono text-slate-500">Tel: {stop.phone}</span>
-                  <button
-                    onClick={() => handleMarkDelivered(stop.id)}
-                    className="px-3 py-1 bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-700 transition-colors"
-                  >
-                    Confirmar Entrega
-                  </button>
-                </div>
-              </div>
-            ))}
+        {activeDriverOrders.length === 0 && (
+          <div className="bg-white p-8 rounded-2xl border border-slate-200 text-center text-slate-400 text-xs">
+            No hay pedidos en esta sección.
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
     </div>
   );
