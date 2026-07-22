@@ -9,7 +9,8 @@ import {
   Search, 
   FileSpreadsheet, 
   LogIn, 
-  Layers
+  Layers,
+  CreditCard
 } from 'lucide-react';
 import type { UserRole } from '../../types';
 
@@ -40,6 +41,35 @@ export const Sidebar: React.FC<SidebarProps> = () => {
               Acceso y Selección de Rol
             </NavLink>
 
+            {/* Customer Flow */}
+            <div className="pt-3">
+              <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider px-3 mb-1">
+                Portal Cliente
+              </div>
+              <NavLink
+                to="/customer/orders"
+                className={({ isActive }) =>
+                  `flex items-center px-3 py-2 text-xs font-medium rounded-lg transition-colors ${
+                    isActive ? 'bg-amber-50 text-amber-800 font-semibold' : 'text-slate-600 hover:bg-slate-50'
+                  }`
+                }
+              >
+                <CreditCard className="w-4 h-4 mr-2.5 text-amber-600" />
+                Mis Envíos (Pendientes Pago)
+              </NavLink>
+              <NavLink
+                to="/customer/create"
+                className={({ isActive }) =>
+                  `flex items-center px-3 py-2 text-xs font-medium rounded-lg transition-colors ${
+                    isActive ? 'bg-blue-50 text-flow-primary font-semibold' : 'text-slate-600 hover:bg-slate-50'
+                  }`
+                }
+              >
+                <FilePlus className="w-4 h-4 mr-2.5 text-blue-800" />
+                Ingreso de Pedido
+              </NavLink>
+            </div>
+
             {/* Admin Flow */}
             <div className="pt-3">
               <div className="text-[10px] font-semibold text-flow-primary/70 uppercase tracking-wider px-3 mb-1">
@@ -55,7 +85,7 @@ export const Sidebar: React.FC<SidebarProps> = () => {
                 }
               >
                 <LayoutDashboard className="w-4 h-4 mr-2.5 text-blue-800" />
-                Gestión de Pedidos & Audit
+                Panel de Administración
               </NavLink>
               <NavLink
                 to="/admin/operations"
@@ -67,17 +97,6 @@ export const Sidebar: React.FC<SidebarProps> = () => {
               >
                 <FileSpreadsheet className="w-4 h-4 mr-2.5 text-blue-800" />
                 Gestión Operativa Fase 1
-              </NavLink>
-              <NavLink
-                to="/admin/create-order"
-                className={({ isActive }) =>
-                  `flex items-center px-3 py-2 text-xs font-medium rounded-lg transition-colors ${
-                    isActive ? 'bg-blue-50 text-flow-primary font-semibold' : 'text-slate-600 hover:bg-slate-50'
-                  }`
-                }
-              >
-                <FilePlus className="w-4 h-4 mr-2.5 text-blue-800" />
-                Formulario Pedido Operativo
               </NavLink>
               <NavLink
                 to="/admin/smart-order"
@@ -117,14 +136,14 @@ export const Sidebar: React.FC<SidebarProps> = () => {
                 }
               >
                 <Smartphone className="w-4 h-4 mr-2.5 text-flow-secondary" />
-                Mi Ruta Diaria (Desktop/Mobile)
+                Ruta del Día (Terreno)
               </NavLink>
             </div>
 
-            {/* Customer Flow */}
+            {/* Public Tracking */}
             <div className="pt-3">
               <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-1">
-                Atención al Cliente
+                Público
               </div>
               <NavLink
                 to="/tracking"
@@ -151,7 +170,7 @@ export const Sidebar: React.FC<SidebarProps> = () => {
             <span>Stitch Synchronized</span>
           </div>
           <p className="text-[10px] text-slate-500">
-            Project ID: <span className="font-mono text-slate-700">298805247...</span>
+            FlowEx PMV 1.0 • Vercel Ready
           </p>
         </div>
       </div>

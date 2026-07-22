@@ -9,6 +9,7 @@ import { SmartOrderPage } from './pages/admin/SmartOrderPage';
 import { RouteDispatchPage } from './pages/driver/RouteDispatchPage';
 import { DailyRoutePage } from './pages/driver/DailyRoutePage';
 import { TrackingPage } from './pages/public/TrackingPage';
+import { CustomerOrdersPage } from './pages/customer/CustomerOrdersPage';
 import type { UserRole } from './types';
 
 export const App: React.FC = () => {
@@ -25,14 +26,15 @@ export const App: React.FC = () => {
         <Routes>
           <Route path="/" element={<LoginPage setRole={setRole} setUserEmail={setUserEmail} />} />
           
+          {/* Customer Routes */}
+          <Route path="/customer/orders" element={<CustomerOrdersPage />} />
+          <Route path="/customer/create" element={<CreateOrderPage />} />
+
           {/* Admin Routes */}
           <Route path="/admin" element={<DashboardPage />} />
           <Route path="/admin/operations" element={<OperationsPage />} />
           <Route path="/admin/create-order" element={<CreateOrderPage />} />
           <Route path="/admin/smart-order" element={<SmartOrderPage />} />
-
-          {/* Customer Route */}
-          <Route path="/customer/create" element={<CreateOrderPage />} />
 
           {/* Driver Routes */}
           <Route path="/driver/route" element={<RouteDispatchPage />} />
