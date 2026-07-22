@@ -9,7 +9,8 @@ import {
   FileSpreadsheet, 
   LogIn, 
   Layers,
-  CreditCard
+  CreditCard,
+  CheckSquare
 } from 'lucide-react';
 import type { UserRole } from '../../types';
 
@@ -38,6 +39,19 @@ export const Sidebar: React.FC<SidebarProps> = () => {
             >
               <LogIn className="w-4 h-4 mr-2.5 text-slate-400" />
               Acceso y Selección de Rol
+            </NavLink>
+
+            {/* PMV Requirements Checklist */}
+            <NavLink
+              to="/requirements"
+              className={({ isActive }) =>
+                `flex items-center px-3 py-2 text-xs font-bold rounded-lg transition-colors ${
+                  isActive ? 'bg-blue-900 text-white shadow-md' : 'text-flow-primary hover:bg-blue-50 font-semibold'
+                }`
+              }
+            >
+              <CheckSquare className="w-4 h-4 mr-2.5 text-flow-secondary" />
+              Lista de Requerimientos PMV
             </NavLink>
 
             {/* Customer Flow */}

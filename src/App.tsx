@@ -9,6 +9,7 @@ import { RouteDispatchPage } from './pages/driver/RouteDispatchPage';
 import { DailyRoutePage } from './pages/driver/DailyRoutePage';
 import { TrackingPage } from './pages/public/TrackingPage';
 import { CustomerOrdersPage } from './pages/customer/CustomerOrdersPage';
+import { PMVRequirementsPage } from './pages/public/PMVRequirementsPage';
 import type { UserRole } from './types';
 
 export const App: React.FC = () => {
@@ -25,6 +26,9 @@ export const App: React.FC = () => {
         <Routes>
           <Route path="/" element={<LoginPage setRole={setRole} setUserEmail={setUserEmail} />} />
           
+          {/* PMV Requirements Checklist Page */}
+          <Route path="/requirements" element={<PMVRequirementsPage />} />
+
           {/* Customer Routes */}
           <Route path="/customer/orders" element={<CustomerOrdersPage />} />
           <Route path="/customer/create" element={<CreateOrderPage />} />
