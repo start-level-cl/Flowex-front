@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Shield, Truck, User, ArrowRight, CheckCircle2, Building, UserCheck } from 'lucide-react';
+import { Shield, Truck, User, ArrowRight, CheckCircle2, UserCheck } from 'lucide-react';
 import type { UserRole } from '../types';
 import { mockCustomerProfile } from '../data/mockData';
 

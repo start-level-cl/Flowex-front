@@ -14,7 +14,7 @@ import { StatusBadge } from '../../components/common/StatusBadge';
 export const OperationsPage: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>(mockOrders);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [filterHub, setFilterHub] = useState<string>('all');
+  const [filterZone, setFilterZone] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
 
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -38,11 +38,11 @@ export const OperationsPage: React.FC = () => {
   };
 
   const filteredOrders = orders.filter(o => {
-    const matchesHub = filterHub === 'all' || o.hubOrigin === filterHub || o.hubDestination === filterHub;
+    const matchesZone = filterZone === 'all' || o.zone.includes(filterZone);
     const matchesSearch = o.trackingNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           o.recipientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           o.senderName.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesHub && matchesSearch;
+    return matchesZone && matchesSearch;
   });
 
   return (
@@ -96,18 +96,18 @@ export const OperationsPage: React.FC = () => {
             </button>
           </div>
 
-          {/* Hub Filters & Search */}
+          {/* Zone Filters & Search */}
           <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
             <select
-              value={filterHub}
-              onChange={(e) => setFilterHub(e.target.value)}
+              value={filterZone}
+              onChange={(e) => setFilterZone(e.target.value)}
               className="bg-slate-50 border border-slate-300 text-slate-700 text-xs rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-flow-primary focus:outline-none"
             >
-              <option value="all">Todos los Hubs</option>
-              <option value="Hub Central Santiago">Hub Central Santiago</option>
-              <option value="Hub Costa Viña">Hub Costa Viña</option>
-              <option value="Hub Sur Concepción">Hub Sur Concepción</option>
-              <option value="Hub Temuco">Hub Temuco</option>
+              <option value="all">Todas las Zonas</option>
+              <option value="Z-1">Zona Santiago (Z-1 / Z-2)</option>
+              <option value="Z-3">Zona Costa (Z-3)</option>
+              <option value="Z-4">Zona Sur Concepción (Z-4)</option>
+              <option value="Z-5">Zona Sur Temuco (Z-5)</option>
             </select>
 
             <div className="relative">
@@ -140,7 +140,7 @@ export const OperationsPage: React.FC = () => {
                 <th className="py-3 px-3">Nº Guía / Tracking</th>
                 <th className="py-3 px-3">Remitente</th>
                 <th className="py-3 px-3">Destinatario</th>
-                <th className="py-3 px-3">Hub Origen $\rightarrow$ Hub Destino</th>
+                <th className="py-3 px-3">Zonificación Automática</th>
                 <th className="py-3 px-3">Estado Operativo</th>
                 <th className="py-3 px-3">Conductor Asignado</th>
                 <th className="py-3 px-3 text-right">Cambiar Estado</th>
@@ -159,18 +159,20 @@ export const OperationsPage: React.FC = () => {
                   </td>
                   <td className="py-3 px-3">
                     <span className="font-mono font-bold text-flow-primary">{order.trackingNumber}</span>
-                    <div className="text-[10px] text-slate-400">{order.packageType}</div>
+                    <div className="text-[10px] text-slate-400">{order.packageType} ({order.packagesCount} bultos)</div>
                   </td>
                   <td className="py-3 px-3">
                     <div className="font-semibold text-slate-800">{order.senderName}</div>
-                    <div className="text-[10px] text-slate-400">{order.senderCity}</div>
+                    <div className="text-[10px] text-slate-400">{order.senderCommune}</div>
                   </td>
                   <td className="py-3 px-3">
                     <div className="font-semibold text-slate-800">{order.recipientName}</div>
-                    <div className="text-[10px] text-slate-400">{order.recipientCity}</div>
+                    <div className="text-[10px] text-slate-400">{order.recipientCommune}</div>
                   </td>
                   <td className="py-3 px-3 text-[11px] font-medium text-slate-600">
-                    {order.hubOrigin} $\rightarrow$ {order.hubDestination}
+                    <span className="bg-blue-50 text-flow-primary font-bold px-2 py-0.5 rounded border border-blue-200">
+                      {order.zone}
+                    </span>
                   </td>
                   <td className="py-3 px-3">
                     <StatusBadge status={order.status} />

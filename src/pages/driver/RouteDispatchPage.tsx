@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Truck, Navigation, Phone, ArrowRight } from 'lucide-react';
-import { mockDriverRoute } from '../../data/mockData';
+import { mockOrders } from '../../data/mockData';
 
 export const RouteDispatchPage: React.FC = () => {
   const navigate = useNavigate();
-  const [route] = useState(mockDriverRoute);
+  const [orders] = useState(mockOrders);
+
+  const routeDriverName = 'Roberto Gómez';
+  const vehiclePlate = 'KJL-942 (Furgón Mercedes Sprinter)';
+  const zone = 'Zona Costa Viña (Z-3)';
 
   return (
     <div className="space-y-6">
@@ -20,7 +24,7 @@ export const RouteDispatchPage: React.FC = () => {
             Gestión de Ruta Driver (Fase 1)
           </h1>
           <p className="text-xs text-slate-600">
-            Conductor: <span className="font-semibold text-slate-900">{route.driverName}</span> | Vehículo: <span className="font-mono text-slate-800">{route.vehiclePlate}</span>
+            Conductor: <span className="font-semibold text-slate-900">{routeDriverName}</span> | Vehículo: <span className="font-mono text-slate-800">{vehiclePlate}</span>
           </p>
         </div>
 
@@ -36,19 +40,19 @@ export const RouteDispatchPage: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-center">
           <span className="text-[10px] font-bold text-slate-400 uppercase">Zona Asignada</span>
-          <p className="text-sm font-bold text-flow-primary mt-1">{route.zone}</p>
+          <p className="text-sm font-bold text-flow-primary mt-1">{zone}</p>
         </div>
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-center">
           <span className="text-[10px] font-bold text-slate-400 uppercase">Total Paradas</span>
-          <p className="text-xl font-bold text-slate-900 mt-1">{route.totalStops}</p>
+          <p className="text-xl font-bold text-slate-900 mt-1">{orders.length}</p>
         </div>
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-center">
           <span className="text-[10px] font-bold text-slate-400 uppercase">Entregadas</span>
-          <p className="text-xl font-bold text-emerald-600 mt-1">{route.completedStops}</p>
+          <p className="text-xl font-bold text-emerald-600 mt-1">{orders.filter(o => o.status === 'delivered').length}</p>
         </div>
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-center">
           <span className="text-[10px] font-bold text-slate-400 uppercase">Distancia Estimada</span>
-          <p className="text-xl font-bold text-flow-secondary mt-1">{route.totalDistanceKm} km</p>
+          <p className="text-xl font-bold text-flow-secondary mt-1">42.5 km</p>
         </div>
       </div>
 
@@ -71,22 +75,22 @@ export const RouteDispatchPage: React.FC = () => {
 
           {/* Map Stops Visual Trail */}
           <div className="my-8 z-10 space-y-4">
-            <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Secuencia de Ruta en Viña del Mar:</div>
+            <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Secuencia de Ruta:</div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {route.stops.map(stop => (
-                <div key={stop.id} className={`p-3 rounded-xl border text-xs ${
-                  stop.status === 'delivered' 
+              {orders.map((order, idx) => (
+                <div key={order.id} className={`p-3 rounded-xl border text-xs ${
+                  order.status === 'delivered' 
                     ? 'bg-emerald-950/60 border-emerald-700 text-emerald-200' 
-                    : stop.status === 'in_progress'
+                    : order.status === 'transit'
                     ? 'bg-orange-950/80 border-flow-secondary text-orange-100 ring-2 ring-flow-secondary'
                     : 'bg-slate-800/80 border-slate-700 text-slate-300'
                 }`}>
                   <div className="flex justify-between items-center font-bold mb-1">
-                    <span>Parada #{stop.sequence}</span>
-                    <span className="text-[10px] uppercase font-mono">{stop.status}</span>
+                    <span>Parada #{idx + 1}</span>
+                    <span className="text-[10px] uppercase font-mono">{order.status}</span>
                   </div>
-                  <p className="font-medium truncate">{stop.recipientName}</p>
-                  <p className="text-[10px] opacity-75 truncate">{stop.address}</p>
+                  <p className="font-medium truncate">{order.recipientName}</p>
+                  <p className="text-[10px] opacity-75 truncate">{order.recipientAddress}, {order.recipientCommune}</p>
                 </div>
               ))}
             </div>
@@ -95,7 +99,7 @@ export const RouteDispatchPage: React.FC = () => {
           <div className="flex justify-between items-center z-10 border-t border-slate-800 pt-3 text-xs text-slate-400">
             <span>Ruta optimizada automáticamente por FlowEx Router Engine</span>
             <button onClick={() => navigate('/driver/daily')} className="text-flow-secondary font-bold hover:underline">
-              Abrir GPS Waze / Google Maps $\rightarrow$
+              Abrir Vista Terreno Driver $\rightarrow$
             </button>
           </div>
 
@@ -108,18 +112,18 @@ export const RouteDispatchPage: React.FC = () => {
           </h3>
 
           <div className="space-y-3">
-            {route.stops.map(stop => (
-              <div key={stop.id} className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1">
+            {orders.map((order, idx) => (
+              <div key={order.id} className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1">
                 <div className="flex justify-between font-semibold">
-                  <span className="text-flow-primary">#{stop.sequence} - {stop.trackingNumber}</span>
-                  <span className="text-[10px] text-slate-500">{stop.timeWindow}</span>
+                  <span className="text-flow-primary">#{idx + 1} - {order.trackingNumber}</span>
+                  <span className="text-[10px] text-slate-500">{order.zone}</span>
                 </div>
-                <div className="font-bold text-slate-900">{stop.recipientName}</div>
-                <div className="text-slate-600 text-[11px]">{stop.address}</div>
+                <div className="font-bold text-slate-900">{order.recipientName}</div>
+                <div className="text-slate-600 text-[11px]">{order.recipientAddress}, {order.recipientCommune}</div>
                 <div className="flex items-center justify-between pt-1 text-[10px]">
-                  <span className="text-slate-500 font-mono"><Phone className="w-3 h-3 inline mr-1" />{stop.phone}</span>
-                  <span className={`font-bold ${stop.status === 'delivered' ? 'text-emerald-600' : 'text-flow-secondary'}`}>
-                    {stop.status === 'delivered' ? 'Entregado' : 'Pendiente'}
+                  <span className="text-slate-500 font-mono"><Phone className="w-3 h-3 inline mr-1" />{order.recipientPhone}</span>
+                  <span className={`font-bold ${order.status === 'delivered' ? 'text-emerald-600' : 'text-flow-secondary'}`}>
+                    {order.status === 'delivered' ? 'Entregado' : order.status}
                   </span>
                 </div>
               </div>

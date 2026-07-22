@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Search, MapPin, Clock, Mail, ShieldCheck, Phone, CheckCircle2, History } from 'lucide-react';
+import { Search, Mail, CheckCircle2, History } from 'lucide-react';
 import { mockOrders } from '../../data/mockData';
 import type { Order } from '../../types';
 import { StatusBadge } from '../../components/common/StatusBadge';

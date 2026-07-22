@@ -1,16 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  Package, 
-  Truck, 
   Plus, 
   Search, 
   History, 
-  Clock, 
-  UserPlus, 
-  CheckCircle2, 
-  CreditCard,
-  AlertCircle
+  CreditCard
 } from 'lucide-react';
 import { mockOrders } from '../../data/mockData';
 import type { Order, OrderStatus } from '../../types';

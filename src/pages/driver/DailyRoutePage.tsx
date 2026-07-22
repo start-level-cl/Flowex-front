@@ -5,9 +5,7 @@ import {
   XCircle, 
   Phone, 
   MapPin, 
-  Clock, 
   Mail, 
-  AlertCircle,
   PackageCheck
 } from 'lucide-react';
 import { mockOrders } from '../../data/mockData';
