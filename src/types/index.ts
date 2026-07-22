@@ -21,6 +21,16 @@ export interface EmailNotification {
   sent: boolean;
 }
 
+export interface WhatsAppNotification {
+  id: string;
+  timestamp: string;
+  recipientPhone: string;
+  triggerEvent: 'order_created' | 'in_transit' | 'delivered' | 'failed';
+  message: string;
+  sent: boolean;
+  whatsappUrl?: string;
+}
+
 export interface CustomerProfile {
   id: string;
   name: string;
@@ -86,6 +96,7 @@ export interface Order {
   // Logs & Notifications
   eventLogs: EventLog[];
   emailNotifications: EmailNotification[];
+  whatsappNotifications: WhatsAppNotification[];
 }
 
 export interface CoverageZone {

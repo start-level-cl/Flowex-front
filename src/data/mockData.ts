@@ -33,7 +33,7 @@ export const mockOrders: Order[] = [
     packageType: 'Caja Grande (Electrónica)',
     weightKg: 4.8,
     declaredValue: 450000,
-    insuranceCost: 5500, // $1000 base + 1% sobre valor declarado que supera base
+    insuranceCost: 5500,
     shippingType: 'express',
     
     zone: 'Zona Costa Viña (Z-3)',
@@ -64,6 +64,18 @@ export const mockOrders: Order[] = [
     emailNotifications: [
       { id: 'EM-1', timestamp: '2026-07-20 09:31', recipientEmail: 'carlos.mendoza@gmail.com', triggerEvent: 'order_created', subject: 'FlowEx: Tu pedido FX-9842-8812-CL ha sido creado', sent: true, body: 'Hola Carlos, tu paquete enviado por Importaciones Santiago ha sido creado con éxito.' },
       { id: 'EM-2', timestamp: '2026-07-22 09:16', recipientEmail: 'carlos.mendoza@gmail.com', triggerEvent: 'in_transit', subject: 'FlowEx: Tu pedido FX-9842-8812-CL está en camino', sent: true, body: 'Hola Carlos, el repartidor Roberto Gómez tiene tu paquete en camino a Calle San Martín 842.' }
+    ],
+
+    whatsappNotifications: [
+      {
+        id: 'WA-1',
+        timestamp: '2026-07-22 09:16',
+        recipientPhone: '+56 9 1122 3344',
+        triggerEvent: 'in_transit',
+        message: '¡Hola Carlos Mendoza! Tu paquete FlowEx FX-9842-8812-CL va en camino a Viña del Mar. Sigue el rastreo en vivo: https://flowex-front.vercel.app/tracking?code=FX-9842-8812-CL',
+        sent: true,
+        whatsappUrl: 'https://api.whatsapp.com/send?phone=56911223344&text=Hola%20Carlos%20Mendoza'
+      }
     ]
   },
   {
@@ -116,6 +128,17 @@ export const mockOrders: Order[] = [
     emailNotifications: [
       { id: 'EM-10', timestamp: '2026-07-21 11:01', recipientEmail: 'maria.torres@clinicadevalpo.cl', triggerEvent: 'order_created', subject: 'FlowEx: Pedido FX-7721-3094-CL recibido', sent: true, body: 'Tu pedido confidencial de Librerías del Centro ha ingresado.' },
       { id: 'EM-11', timestamp: '2026-07-21 15:46', recipientEmail: 'maria.torres@clinicadevalpo.cl', triggerEvent: 'delivered', subject: 'FlowEx: Pedido FX-7721-3094-CL Entregado', sent: true, body: 'Tu pedido ha sido entregado en Av. Las Condes 9820.' }
+    ],
+
+    whatsappNotifications: [
+      {
+        id: 'WA-10',
+        timestamp: '2026-07-21 15:46',
+        recipientPhone: '+56 9 5566 7788',
+        triggerEvent: 'delivered',
+        message: '¡Hola Dra. María Elena Torres! Tu pedido FlowEx FX-7721-3094-CL ha sido entregado exitosamente en Av. Las Condes 9820.',
+        sent: true
+      }
     ]
   },
   {
@@ -165,7 +188,9 @@ export const mockOrders: Order[] = [
 
     emailNotifications: [
       { id: 'EM-20', timestamp: '2026-07-22 08:21', recipientEmail: 'gonzalo.silva@gmail.com', triggerEvent: 'order_created', subject: 'FlowEx: Confirmación de Envío FX-4490-1123-CL', sent: true, body: 'Tu pedido está listo para salir a Concepción.' }
-    ]
+    ],
+
+    whatsappNotifications: []
   },
   {
     id: 'ORD-84923',
@@ -216,6 +241,17 @@ export const mockOrders: Order[] = [
 
     emailNotifications: [
       { id: 'EM-30', timestamp: '2026-07-21 11:31', recipientEmail: 'despacho@farmaciasalud.cl', triggerEvent: 'failed', subject: 'FlowEx: Intento de entrega fallido para FX-1102-9988-CL', sent: true, body: 'El transportista no pudo entregar por falta de número de local.' }
+    ],
+
+    whatsappNotifications: [
+      {
+        id: 'WA-30',
+        timestamp: '2026-07-21 11:31',
+        recipientPhone: '+56 9 6677 8899',
+        triggerEvent: 'failed',
+        message: 'FlowEx Alertas: Se ha registrado un problema en la entrega de tu envío FX-1102-9988-CL (Falta número de local).',
+        sent: true
+      }
     ]
   },
   {
@@ -261,6 +297,8 @@ export const mockOrders: Order[] = [
 
     emailNotifications: [
       { id: 'EM-40', timestamp: '2026-07-22 10:06', recipientEmail: 'constanza.larrain@gmail.com', triggerEvent: 'order_created', subject: 'FlowEx: Tu pedido FX-6632-4411-CL está registrado', sent: true, body: 'Tu pedido de Boutique Parisienne fue registrado y está pendiente de pago.' }
-    ]
+    ],
+
+    whatsappNotifications: []
   }
 ];

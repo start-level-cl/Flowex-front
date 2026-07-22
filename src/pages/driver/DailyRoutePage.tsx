@@ -5,8 +5,8 @@ import {
   XCircle, 
   Phone, 
   MapPin, 
-  Mail, 
-  PackageCheck
+  PackageCheck,
+  MessageCircle
 } from 'lucide-react';
 import { mockOrders } from '../../data/mockData';
 import type { Order, OrderStatus } from '../../types';
@@ -16,7 +16,6 @@ import { PMVRequirementBadge } from '../../components/common/PMVRequirementBadge
 export const DailyRoutePage: React.FC = () => {
   const currentDriverEmail = localStorage.getItem('flowex_user_email') || 'rgomez@flowex.cl';
   
-  // Requerimiento 6: Ruta del día generada automáticamente (Pagados + Pendientes)
   const [driverOrders, setDriverOrders] = useState<Order[]>(mockOrders);
   const [activeTab, setActiveTab] = useState<'pending_route' | 'delivered'>('pending_route');
   const [notificationToast, setNotificationToast] = useState<string | null>(null);
@@ -28,7 +27,6 @@ export const DailyRoutePage: React.FC = () => {
     return o.status === 'delivered' || o.status === 'incident';
   });
 
-  // Requerimiento 7 & 11: Cambio de estado en terreno + Notificación automática por correo
   const handleDriverStatusUpdate = (orderId: string, newStatus: OrderStatus) => {
     const updatedOrders = driverOrders.map(o => {
       if (o.id === orderId) {
@@ -60,20 +58,44 @@ export const DailyRoutePage: React.FC = () => {
           sent: true
         };
 
-        setNotificationToast(`✉️ Correo automático enviado a ${o.recipientEmail} (${emailSubject})`);
+        const waText = `¡Hola ${o.recipientName}! Tu paquete FlowEx ${o.trackingNumber} ha cambiado a estado: ${actionText}. Sigue la trazabilidad en vivo: https://flowex-front.vercel.app/tracking?code=${o.trackingNumber}`;
+        const cleanPhone = o.recipientPhone.replace(/[^0-9]/g, '');
+        const waUrl = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(waText)}`;
+
+        const newWhatsApp = {
+          id: `WA-DRV-${Date.now()}`,
+          timestamp: new Date().toLocaleString(),
+          recipientPhone: o.recipientPhone,
+          triggerEvent: triggerEvent as any,
+          message: waText,
+          sent: true,
+          whatsappUrl: waUrl
+        };
+
+        setNotificationToast(`✉️ Email + 💬 WhatsApp preparado para ${o.recipientPhone}`);
         setTimeout(() => setNotificationToast(null), 4500);
 
         return {
           ...o,
           status: newStatus,
           eventLogs: [newLog, ...o.eventLogs],
-          emailNotifications: [newEmail, ...o.emailNotifications]
+          emailNotifications: [newEmail, ...o.emailNotifications],
+          whatsappNotifications: [newWhatsApp, ...(o.whatsappNotifications || [])]
         };
       }
       return o;
     });
 
     setDriverOrders(updatedOrders);
+  };
+
+  const handleOpenWhatsApp = (order: Order) => {
+    const actionText = order.status === 'transit' ? 'En Camino' : order.status === 'delivered' ? 'Entregado' : 'Registrado';
+    const waText = `¡Hola ${order.recipientName}! Tu envío FlowEx ${order.trackingNumber} estado: ${actionText}. Trazabilidad: https://flowex-front.vercel.app/tracking?code=${order.trackingNumber}`;
+    const cleanPhone = order.recipientPhone.replace(/[^0-9]/g, '');
+    const waUrl = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(waText)}`;
+    
+    window.open(waUrl, '_blank');
   };
 
   return (
@@ -84,7 +106,7 @@ export const DailyRoutePage: React.FC = () => {
         requirements={[
           { num: 6, title: 'Ruta del Día Automática (Pagados + Pendientes)' },
           { num: 7, title: 'Cambio de Estado Directo en Terreno (Vista Simple)' },
-          { num: 11, title: 'Disparo Automático de Notificaciones por Correo' }
+          { num: 11, title: 'Notificaciones Automáticas por Correo & WhatsApp' }
         ]}
       />
 
@@ -92,14 +114,14 @@ export const DailyRoutePage: React.FC = () => {
       {notificationToast && (
         <div className="bg-emerald-600 text-white p-4 rounded-2xl shadow-xl flex items-center justify-between text-xs font-semibold animate-pulse">
           <div className="flex items-center space-x-2">
-            <Mail className="w-5 h-5 text-white" />
+            <MessageCircle className="w-5 h-5 text-emerald-200" />
             <span>{notificationToast}</span>
           </div>
           <button onClick={() => setNotificationToast(null)} className="font-bold text-white">✕</button>
         </div>
       )}
 
-      {/* Driver Simple Header (Requerimiento 6 & 7) */}
+      {/* Driver Simple Header */}
       <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
         <div className="flex justify-between items-start">
           <div>
@@ -107,7 +129,7 @@ export const DailyRoutePage: React.FC = () => {
               Ruta del Día (Vista Conductor)
             </h1>
             <p className="text-xs text-slate-600">
-              Conductor: <span className="font-semibold text-slate-900">{currentDriverEmail}</span> | Generada automáticamente.
+              Conductor: <span className="font-semibold text-slate-900">{currentDriverEmail}</span> | Notificaciones por WhatsApp integradas.
             </p>
           </div>
           <div className="w-10 h-10 bg-orange-100 text-flow-secondary rounded-xl flex items-center justify-center font-bold">
@@ -140,7 +162,7 @@ export const DailyRoutePage: React.FC = () => {
         </div>
       </div>
 
-      {/* Orders List (Vista Simple Terreno) */}
+      {/* Orders List */}
       <div className="space-y-4">
         {activeDriverOrders.map((order, idx) => (
           <div key={order.id} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
@@ -152,7 +174,16 @@ export const DailyRoutePage: React.FC = () => {
                 </span>
                 <h3 className="text-base font-bold text-slate-900 mt-1">{order.recipientName}</h3>
               </div>
-              <StatusBadge status={order.status} size="sm" />
+              <div className="flex items-center space-x-2">
+                <StatusBadge status={order.status} size="sm" />
+                <button
+                  onClick={() => handleOpenWhatsApp(order)}
+                  title="Enviar Notificación por WhatsApp Web"
+                  className="p-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg border border-emerald-200 transition-colors flex items-center text-[10px] font-bold"
+                >
+                  <MessageCircle className="w-4 h-4 mr-1 text-emerald-600" /> WhatsApp
+                </button>
+              </div>
             </div>
 
             <div className="text-xs space-y-1.5 text-slate-700">
@@ -172,7 +203,7 @@ export const DailyRoutePage: React.FC = () => {
               )}
             </div>
 
-            {/* Requerimiento 7: Cambio de estado directo en terreno (Vista simple) */}
+            {/* Change Status in Terrain */}
             {order.status !== 'delivered' && (
               <div className="pt-2 border-t border-slate-100 grid grid-cols-3 gap-2">
                 <button

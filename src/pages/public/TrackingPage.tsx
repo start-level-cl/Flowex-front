@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Search, Mail, CheckCircle2, History } from 'lucide-react';
+import { Search, Mail, CheckCircle2, History, MessageCircle, ExternalLink } from 'lucide-react';
 import { mockOrders } from '../../data/mockData';
 import type { Order } from '../../types';
 import { StatusBadge } from '../../components/common/StatusBadge';
@@ -28,6 +28,14 @@ export const TrackingPage: React.FC = () => {
     }
   };
 
+  const handleOpenWhatsAppWeb = () => {
+    if (!currentOrder) return;
+    const waText = `Hola ${currentOrder.recipientName}, revisa el estado en vivo de tu envío FlowEx ${currentOrder.trackingNumber} aquí: https://flowex-front.vercel.app/tracking?code=${currentOrder.trackingNumber}`;
+    const cleanPhone = currentOrder.recipientPhone.replace(/[^0-9]/g, '');
+    const waUrl = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(waText)}`;
+    window.open(waUrl, '_blank');
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-6 py-2">
       
@@ -35,7 +43,7 @@ export const TrackingPage: React.FC = () => {
       <PMVRequirementBadge
         requirements={[
           { num: 10, title: 'Vista Externa Pública de Seguimiento (Log como Fuente de Verdad)' },
-          { num: 11, title: 'Historial Notificaciones Automáticas por Correo' }
+          { num: 11, title: 'Notificaciones Automáticas por Correo & WhatsApp' }
         ]}
       />
 
@@ -83,9 +91,12 @@ export const TrackingPage: React.FC = () => {
               </div>
               <div className="flex items-center space-x-2">
                 <StatusBadge status={currentOrder.status} size="lg" />
-                <span className="text-xs bg-blue-100 text-flow-primary font-bold px-3 py-1 rounded-full border border-blue-200">
-                  {currentOrder.zone}
-                </span>
+                <button
+                  onClick={handleOpenWhatsAppWeb}
+                  className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-full shadow flex items-center transition-all"
+                >
+                  <MessageCircle className="w-4 h-4 mr-1.5" /> Enviar Estado por WhatsApp
+                </button>
               </div>
             </div>
 
@@ -94,7 +105,7 @@ export const TrackingPage: React.FC = () => {
                 <span className="text-slate-400 font-medium uppercase text-[10px] block mb-1">Destinatario</span>
                 <p className="font-bold text-slate-900">{currentOrder.recipientName}</p>
                 <p className="text-slate-600">{currentOrder.recipientAddress}</p>
-                <p className="text-slate-500 font-semibold">{currentOrder.recipientCommune}</p>
+                <p className="text-slate-500 font-semibold">{currentOrder.recipientCommune} ({currentOrder.recipientPhone})</p>
               </div>
 
               <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/80">
@@ -150,27 +161,72 @@ export const TrackingPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Requerimiento 11: Email Notifications History Log */}
-          <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
-            <h3 className="text-sm font-headline font-bold text-flow-primary uppercase tracking-wider flex items-center border-b border-slate-100 pb-3">
-              <Mail className="w-4 h-4 mr-2 text-flow-secondary" /> Historial de Notificaciones de Correo Enviadas
-            </h3>
+          {/* Notifications History Grid (Email & WhatsApp) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            {/* Email Notifications */}
+            <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
+              <h3 className="text-xs font-headline font-bold text-flow-primary uppercase tracking-wider flex items-center border-b border-slate-100 pb-3">
+                <Mail className="w-4 h-4 mr-2 text-flow-secondary" /> Notificaciones por Correo
+              </h3>
 
-            <div className="space-y-3">
-              {currentOrder.emailNotifications.map(email => (
-                <div key={email.id} className="p-3 bg-blue-50/60 rounded-2xl border border-blue-200 text-xs space-y-1">
-                  <div className="flex justify-between font-semibold text-flow-primary">
-                    <span>Enviado a: {email.recipientEmail}</span>
-                    <span className="text-[10px] text-slate-400 font-mono">{email.timestamp}</span>
+              <div className="space-y-3">
+                {currentOrder.emailNotifications.map(email => (
+                  <div key={email.id} className="p-3 bg-blue-50/60 rounded-2xl border border-blue-200 text-xs space-y-1">
+                    <div className="flex justify-between font-semibold text-flow-primary">
+                      <span>Enviado a: {email.recipientEmail}</span>
+                      <span className="text-[10px] text-slate-400 font-mono">{email.timestamp}</span>
+                    </div>
+                    <div className="font-bold text-slate-900">{email.subject}</div>
+                    <p className="text-slate-600 text-[11px]">{email.body}</p>
                   </div>
-                  <div className="font-bold text-slate-900">{email.subject}</div>
-                  <p className="text-slate-600 text-[11px]">{email.body}</p>
-                </div>
-              ))}
-              {currentOrder.emailNotifications.length === 0 && (
-                <p className="text-xs text-slate-400 italic">No hay notificaciones por correo en este envío.</p>
-              )}
+                ))}
+                {currentOrder.emailNotifications.length === 0 && (
+                  <p className="text-xs text-slate-400 italic">No hay notificaciones por correo.</p>
+                )}
+              </div>
             </div>
+
+            {/* WhatsApp Notifications */}
+            <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
+              <h3 className="text-xs font-headline font-bold text-emerald-800 uppercase tracking-wider flex items-center border-b border-slate-100 pb-3">
+                <MessageCircle className="w-4 h-4 mr-2 text-emerald-600" /> Notificaciones por WhatsApp
+              </h3>
+
+              <div className="space-y-3">
+                {(currentOrder.whatsappNotifications || []).map(wa => (
+                  <div key={wa.id} className="p-3 bg-emerald-50/70 rounded-2xl border border-emerald-200 text-xs space-y-1">
+                    <div className="flex justify-between font-semibold text-emerald-800">
+                      <span>WhatsApp enviado a: {wa.recipientPhone}</span>
+                      <span className="text-[10px] text-slate-400 font-mono">{wa.timestamp}</span>
+                    </div>
+                    <p className="text-slate-700 text-[11px]">{wa.message}</p>
+                    {wa.whatsappUrl && (
+                      <a
+                        href={wa.whatsappUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[10px] font-bold text-emerald-700 hover:underline inline-flex items-center pt-1"
+                      >
+                        Abrir Chat de WhatsApp <ExternalLink className="w-3 h-3 ml-1" />
+                      </a>
+                    )}
+                  </div>
+                ))}
+                {(!currentOrder.whatsappNotifications || currentOrder.whatsappNotifications.length === 0) && (
+                  <div className="text-center py-4">
+                    <p className="text-xs text-slate-400 italic mb-2">No se han registrado envíos de WhatsApp.</p>
+                    <button
+                      onClick={handleOpenWhatsAppWeb}
+                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow inline-flex items-center"
+                    >
+                      <MessageCircle className="w-3.5 h-3.5 mr-1" /> Enviar Primer WhatsApp
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
           </div>
 
         </div>
