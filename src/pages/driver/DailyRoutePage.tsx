@@ -11,6 +11,7 @@ import {
 import { mockOrders } from '../../data/mockData';
 import type { Order, OrderStatus } from '../../types';
 import { StatusBadge } from '../../components/common/StatusBadge';
+import { PMVRequirementBadge } from '../../components/common/PMVRequirementBadge';
 
 export const DailyRoutePage: React.FC = () => {
   const currentDriverEmail = localStorage.getItem('flowex_user_email') || 'rgomez@flowex.cl';
@@ -78,6 +79,15 @@ export const DailyRoutePage: React.FC = () => {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       
+      {/* PMV Requirement Banner */}
+      <PMVRequirementBadge
+        requirements={[
+          { num: 6, title: 'Ruta del Día Automática (Pagados + Pendientes)' },
+          { num: 7, title: 'Cambio de Estado Directo en Terreno (Vista Simple)' },
+          { num: 11, title: 'Disparo Automático de Notificaciones por Correo' }
+        ]}
+      />
+
       {/* Toast Notification Alert */}
       {notificationToast && (
         <div className="bg-emerald-600 text-white p-4 rounded-2xl shadow-xl flex items-center justify-between text-xs font-semibold animate-pulse">
@@ -93,9 +103,6 @@ export const DailyRoutePage: React.FC = () => {
       <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
         <div className="flex justify-between items-start">
           <div>
-            <span className="text-[10px] font-bold text-flow-secondary uppercase tracking-wider bg-orange-50 px-2.5 py-0.5 rounded-full border border-orange-200">
-              Requerimientos 6, 7 & 11
-            </span>
             <h1 className="text-xl font-headline font-bold text-slate-900 mt-1">
               Ruta del Día (Vista Conductor)
             </h1>

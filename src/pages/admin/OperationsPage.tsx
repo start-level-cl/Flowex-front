@@ -10,6 +10,7 @@ import {
 import { mockOrders } from '../../data/mockData';
 import type { Order, OrderStatus } from '../../types';
 import { StatusBadge } from '../../components/common/StatusBadge';
+import { PMVRequirementBadge } from '../../components/common/PMVRequirementBadge';
 
 export const OperationsPage: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>(mockOrders);
@@ -48,6 +49,14 @@ export const OperationsPage: React.FC = () => {
   return (
     <div className="space-y-6">
       
+      {/* PMV Requirement Banner */}
+      <PMVRequirementBadge
+        requirements={[
+          { num: 8, title: 'Panel de Administración Operativo & Filtros Básicos' },
+          { num: 9, title: 'Edición de Estados & Registro de Eventos' }
+        ]}
+      />
+
       {/* Header */}
       <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>

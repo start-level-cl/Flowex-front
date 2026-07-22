@@ -12,6 +12,7 @@ import {
 import { mockOrders, mockCustomerProfile } from '../../data/mockData';
 import type { Order } from '../../types';
 import { StatusBadge } from '../../components/common/StatusBadge';
+import { PMVRequirementBadge } from '../../components/common/PMVRequirementBadge';
 
 export const CustomerOrdersPage: React.FC = () => {
   const navigate = useNavigate();
@@ -23,7 +24,7 @@ export const CustomerOrdersPage: React.FC = () => {
   const [paymentSuccessToast, setPaymentSuccessToast] = useState<string | null>(null);
 
   // Filter orders for the logged customer
-  const customerOrders = orders.filter(o => o.customerEmail === customerEmail || true); // Default to all customer orders for demo
+  const customerOrders = orders.filter(o => o.customerEmail === customerEmail || true);
 
   const unpaidOrders = customerOrders.filter(o => !o.isPaid);
   const paidOrders = customerOrders.filter(o => o.isPaid);
@@ -80,6 +81,14 @@ export const CustomerOrdersPage: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       
+      {/* PMV Requirement Banner */}
+      <PMVRequirementBadge
+        requirements={[
+          { num: 2, title: 'Registro y Persistencia de Datos de Cliente' },
+          { num: 5, title: 'Pasarela de Pago Integrada (Filtro Envíos Pendientes por Pagar)' }
+        ]}
+      />
+
       {/* Toast Notification */}
       {paymentSuccessToast && (
         <div className="bg-emerald-600 text-white p-4 rounded-2xl shadow-xl flex items-center justify-between text-xs font-semibold animate-bounce">

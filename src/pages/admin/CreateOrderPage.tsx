@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { coverageZonesList, getCommuneZone } from '../../data/coverageZones';
 import { mockCustomerProfile } from '../../data/mockData';
+import { PMVRequirementBadge } from '../../components/common/PMVRequirementBadge';
 
 export const CreateOrderPage: React.FC = () => {
   const navigate = useNavigate();
@@ -161,6 +162,16 @@ export const CreateOrderPage: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       
+      {/* PMV Requirement Banner */}
+      <PMVRequirementBadge
+        requirements={[
+          { num: 2, title: 'Persistencia de Cliente & Campo "Ingresado por"' },
+          { num: 3, title: 'Formulario de Pedido, Bultos, Tipo de Envío & Seguro' },
+          { num: 4, title: 'Zonificación Automática por Comuna' },
+          { num: 5, title: 'Pasarela de Pago Integrada Embebida' }
+        ]}
+      />
+
       {/* Header */}
       <div className="flex items-center justify-between bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
         <div className="flex items-center space-x-3">
@@ -168,10 +179,7 @@ export const CreateOrderPage: React.FC = () => {
             <ArrowLeft className="w-4 h-4 text-slate-700" />
           </button>
           <div>
-            <span className="text-[10px] font-bold text-flow-primary uppercase tracking-wider bg-blue-50 px-2 py-0.5 rounded-md">
-              Requerimientos 2, 3 y 4
-            </span>
-            <h1 className="text-xl font-headline font-bold text-slate-900 mt-1">
+            <h1 className="text-xl font-headline font-bold text-slate-900">
               Ingreso de Pedido con Zonificación
             </h1>
           </div>

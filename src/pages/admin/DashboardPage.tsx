@@ -9,6 +9,7 @@ import {
 import { mockOrders } from '../../data/mockData';
 import type { Order, OrderStatus } from '../../types';
 import { StatusBadge } from '../../components/common/StatusBadge';
+import { PMVRequirementBadge } from '../../components/common/PMVRequirementBadge';
 
 export const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
@@ -93,16 +94,22 @@ export const DashboardPage: React.FC = () => {
   return (
     <div className="space-y-6">
       
+      {/* PMV Requirement Banner */}
+      <PMVRequirementBadge
+        requirements={[
+          { num: 4, title: 'Zonificación Automática Visible al Asignar Conductor' },
+          { num: 8, title: 'Panel de Administración Limpio sin Dashboard Analítico' },
+          { num: 9, title: 'Registro de Eventos (Log) por Usuario y Rol' }
+        ]}
+      />
+
       {/* Header Panel Operativo */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
         <div>
-          <span className="text-[11px] font-bold text-flow-primary uppercase tracking-wider bg-blue-50 px-2.5 py-1 rounded-full border border-blue-100">
-            Requerimientos 8 & 9
-          </span>
-          <h1 className="text-2xl font-headline font-bold text-slate-900 mt-1">
+          <h1 className="text-2xl font-headline font-bold text-slate-900">
             Panel de Administración Operativo
           </h1>
-          <p className="text-xs text-slate-600">
+          <p className="text-xs text-slate-600 mt-1">
             Tabla limpia de pedidos, zonificación automática, asignación de conductor y registro de eventos por usuario.
           </p>
         </div>

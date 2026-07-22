@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Truck, Navigation, Phone, ArrowRight } from 'lucide-react';
 import { mockOrders } from '../../data/mockData';
+import { PMVRequirementBadge } from '../../components/common/PMVRequirementBadge';
 
 export const RouteDispatchPage: React.FC = () => {
   const navigate = useNavigate();
@@ -14,6 +15,14 @@ export const RouteDispatchPage: React.FC = () => {
   return (
     <div className="space-y-6">
       
+      {/* PMV Requirement Banner */}
+      <PMVRequirementBadge
+        requirements={[
+          { num: 4, title: 'Zonificación Automática Asignada al Driver' },
+          { num: 6, title: 'Generación Automática de Ruta del Día (Pagados + Pendientes)' }
+        ]}
+      />
+
       {/* Driver Header Banner */}
       <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>

@@ -4,6 +4,7 @@ import { Search, Mail, CheckCircle2, History } from 'lucide-react';
 import { mockOrders } from '../../data/mockData';
 import type { Order } from '../../types';
 import { StatusBadge } from '../../components/common/StatusBadge';
+import { PMVRequirementBadge } from '../../components/common/PMVRequirementBadge';
 
 export const TrackingPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -28,14 +29,19 @@ export const TrackingPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 py-4">
+    <div className="max-w-4xl mx-auto space-y-6 py-2">
       
+      {/* PMV Requirement Banner */}
+      <PMVRequirementBadge
+        requirements={[
+          { num: 10, title: 'Vista Externa Pública de Seguimiento (Log como Fuente de Verdad)' },
+          { num: 11, title: 'Historial Notificaciones Automáticas por Correo' }
+        ]}
+      />
+
       {/* Search Header Banner */}
       <div className="bg-gradient-to-r from-flow-primary to-blue-900 text-white p-8 rounded-3xl shadow-flow text-center space-y-4 relative overflow-hidden">
         <div className="max-w-xl mx-auto space-y-2">
-          <span className="text-xs font-mono tracking-widest text-flow-secondary uppercase font-bold">
-            Requerimientos 10 & 11 — Vista Pública Externa
-          </span>
           <h1 className="text-3xl font-headline font-extrabold">Seguimiento de Envío FlowEx</h1>
           <p className="text-xs text-blue-200">
             Consulta el estado de tu paquete sin necesidad de iniciar sesión. Log de eventos en vivo como fuente de verdad.

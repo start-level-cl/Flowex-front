@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Shield, Truck, User, ArrowRight, CheckCircle2, UserCheck } from 'lucide-react';
 import type { UserRole } from '../types';
 import { mockCustomerProfile } from '../data/mockData';
+import { PMVRequirementBadge } from '../components/common/PMVRequirementBadge';
 
 interface LoginPageProps {
   setRole: (role: UserRole) => void;
@@ -27,10 +28,20 @@ export const LoginPage: React.FC<LoginPageProps> = ({ setRole, setUserEmail }) =
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex flex-col justify-center py-10 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-flow-bg via-white to-blue-50/50">
+    <div className="min-h-[calc(100vh-4rem)] flex flex-col justify-center py-6 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-flow-bg via-white to-blue-50/50">
       
+      {/* PMV Requirement Banner */}
+      <div className="max-w-5xl mx-auto w-full">
+        <PMVRequirementBadge
+          requirements={[
+            { num: 1, title: 'Autenticación con Roles (Cliente, Admin, Driver)' },
+            { num: 2, title: 'Registro y Persistencia de Cliente + Identificador de Origen' }
+          ]}
+        />
+      </div>
+
       {/* Title & Brand Intro */}
-      <div className="sm:mx-auto sm:w-full sm:max-w-xl text-center mb-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-xl text-center mb-6">
         <div className="inline-flex items-center justify-center w-16 h-16 bg-flow-primary text-flow-secondary rounded-2xl shadow-xl font-headline text-3xl font-extrabold mb-3 transform -rotate-3 hover:rotate-0 transition-all">
           FX
         </div>
