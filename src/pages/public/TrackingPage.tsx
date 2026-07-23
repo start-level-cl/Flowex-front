@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Search, Mail, CheckCircle2, History, MessageCircle, ExternalLink } from 'lucide-react';
+import { Search, Mail, CheckCircle2, History, MessageCircle, ExternalLink, Key, AlertTriangle } from 'lucide-react';
 import { mockOrders } from '../../data/mockData';
 import type { Order } from '../../types';
 import { StatusBadge } from '../../components/common/StatusBadge';
@@ -99,6 +99,54 @@ export const TrackingPage: React.FC = () => {
                 </button>
               </div>
             </div>
+
+            {/* Customer Delivery PIN Banner */}
+            {currentOrder.deliveryCode && (
+              <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs shadow-sm">
+                <div className="flex items-center space-x-3 text-emerald-900">
+                  <Key className="w-6 h-6 text-emerald-600 flex-shrink-0" />
+                  <div>
+                    <span className="font-bold text-sm block">🔐 Código Seguro de Entrega para el Driver</span>
+                    <span className="text-emerald-700 text-[11px]">Proporciona este código PIN al repartidor cuando entregue tu pedido.</span>
+                  </div>
+                </div>
+                <span className="font-mono text-xl font-extrabold text-flow-primary bg-white px-4 py-1.5 rounded-xl border border-emerald-300 shadow-sm tracking-wider">
+                  {currentOrder.deliveryCode}
+                </span>
+              </div>
+            )}
+
+            {/* Failed Delivery / Incident Banner with Evidence Photo */}
+            {currentOrder.status === 'incident' && (
+              <div className="p-5 bg-rose-50 rounded-2xl border border-rose-200 space-y-3 text-xs">
+                <div className="flex items-center justify-between font-bold text-rose-900 border-b border-rose-200/80 pb-2">
+                  <span className="flex items-center text-sm">
+                    <AlertTriangle className="w-5 h-5 text-rose-600 mr-2" /> Intento de Entrega Fallido
+                  </span>
+                  <span className="text-[10px] bg-rose-100 text-rose-800 px-2.5 py-0.5 rounded font-mono">
+                    Intento #{currentOrder.deliveryAttemptsCount || 1}
+                  </span>
+                </div>
+
+                <p className="text-rose-800 font-semibold">
+                  Motivo reportado por conductor: <span className="font-extrabold">"{currentOrder.failedDeliveryReason || 'Destinatario Ausente'}"</span>
+                </p>
+                <div className="bg-white p-3 rounded-xl border border-rose-200 text-rose-900 font-medium">
+                  🔄 <strong>Estado actual:</strong> El paquete ha vuelto automáticamente a la cola para un próximo intento de entrega.
+                </div>
+
+                {currentOrder.failedDeliveryPhotoUrl && (
+                  <div className="pt-2">
+                    <span className="text-[10px] font-bold text-rose-800 uppercase block mb-1">📷 Foto de Evidencia Subida por Conductor en Terreno:</span>
+                    <img
+                      src={currentOrder.failedDeliveryPhotoUrl}
+                      alt="Foto Evidencia Entrega Fallida"
+                      className="w-full max-h-56 object-cover rounded-xl border border-rose-300 shadow-sm"
+                    />
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
               <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/80">

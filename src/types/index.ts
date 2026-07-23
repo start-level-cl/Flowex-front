@@ -113,8 +113,12 @@ export interface Order {
   assignedDriverId?: string;
   assignedDriverName?: string;
 
-  // Proof of Delivery
+  // Proof of Delivery & Incidents
   deliveryPhotoUrl?: string;
+  deliveryCode?: string;
+  failedDeliveryReason?: string;
+  failedDeliveryPhotoUrl?: string;
+  deliveryAttemptsCount?: number;
   
   // Financials
   baseCost: number;

@@ -10,7 +10,11 @@ import {
   ArrowLeft, 
   ShieldCheck,
   UserCheck,
-  Tag
+  Tag,
+  Layers,
+  Plus,
+  Trash2,
+  Key
 } from 'lucide-react';
 import { coverageZonesList, getCommuneZone } from '../../data/coverageZones';
 import { mockCustomerProfile } from '../../data/mockData';
@@ -24,6 +28,9 @@ export const CreateOrderPage: React.FC = () => {
   const savedEnteredBy = (localStorage.getItem('flowex_entered_by') as 'cliente' | 'vendedor') || 'cliente';
   const savedSellerName = localStorage.getItem('flowex_seller_name') || 'Rodrigo Vendedor B2B';
 
+  // Mode: Single vs Multiple (Batch)
+  const [entryMode, setEntryMode] = useState<'single' | 'batch'>('single');
+
   const [formData, setFormData] = useState({
     senderName: mockCustomerProfile.name,
     senderPhone: mockCustomerProfile.phone,
@@ -31,7 +38,7 @@ export const CreateOrderPage: React.FC = () => {
     senderCommune: mockCustomerProfile.savedAddresses[0].commune,
     
     recipientName: '',
-    recipientPhone: '',
+    recipientPhone: '+569 8225 7217',
     recipientEmail: '',
     recipientAddress: '',
     recipientCommune: 'Viña del Mar',
@@ -43,6 +50,42 @@ export const CreateOrderPage: React.FC = () => {
     shippingType: 'express' as 'normal' | 'express' | 'same_day',
     notes: ''
   });
+
+  // State for Batch / Multiple orders
+  const [batchItems, setBatchItems] = useState<Array<{
+    id: string;
+    recipientName: string;
+    recipientPhone: string;
+    recipientEmail: string;
+    recipientAddress: string;
+    recipientCommune: string;
+    packagesCount: number;
+    declaredValue: number;
+    shippingType: 'normal' | 'express' | 'same_day';
+  }>>([
+    {
+      id: 'batch-1',
+      recipientName: 'Carlos Mendoza',
+      recipientPhone: '+569 8225 7217',
+      recipientEmail: 'carlos.mendoza@gmail.com',
+      recipientAddress: 'Calle San Martín 842',
+      recipientCommune: 'Viña del Mar',
+      packagesCount: 2,
+      declaredValue: 120000,
+      shippingType: 'express'
+    },
+    {
+      id: 'batch-2',
+      recipientName: 'Dra. María Torres',
+      recipientPhone: '+569 8225 7217',
+      recipientEmail: 'maria.torres@clinicadevalpo.cl',
+      recipientAddress: 'Av. Las Condes 9820',
+      recipientCommune: 'Las Condes',
+      packagesCount: 1,
+      declaredValue: 85000,
+      shippingType: 'normal'
+    }
+  ]);
 
   // Requirement 1: Promo code state
   const [inputPromoCode, setInputPromoCode] = useState('');
@@ -110,10 +153,12 @@ export const CreateOrderPage: React.FC = () => {
     const trackingNumber = `FX-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(1000 + Math.random() * 9000)}-CL`;
     const subtotal = calculateSubtotalCost();
     const finalTotal = calculateFinalTotalCost();
-    
+    const deliveryCode = `FLW-${Math.floor(1000 + Math.random() * 9000)}`;
+
     const newOrderData = {
       id: `ORD-${Date.now()}`,
       trackingNumber,
+      deliveryCode,
       enteredBy: savedEnteredBy,
       sellerName: savedEnteredBy === 'vendedor' ? savedSellerName : undefined,
       customerEmail: mockCustomerProfile.email,
@@ -168,11 +213,111 @@ export const CreateOrderPage: React.FC = () => {
           recipientEmail: formData.recipientEmail || 'cliente@ejemplo.cl',
           triggerEvent: 'order_created',
           subject: `FlowEx: Confirmación de Pedido ${trackingNumber}`,
-          body: `Hola ${formData.recipientName}, tu pedido ha sido registrado con éxito.`,
+          body: `Hola ${formData.recipientName}, tu pedido ha sido registrado con éxito. Tu código seguro de entrega para el driver es: ${deliveryCode}`,
           sent: true
         }
       ],
 
+      whatsappNotifications: []
+    };
+
+    setCreatedOrder(newOrderData);
+    setShowPaymentModal(true);
+  };
+
+  // Helper functions for Batch Mode
+  const addBatchRow = () => {
+    setBatchItems([
+      ...batchItems,
+      {
+        id: `batch-${Date.now()}`,
+        recipientName: '',
+        recipientPhone: '+569 8225 7217',
+        recipientEmail: '',
+        recipientAddress: '',
+        recipientCommune: 'Santiago',
+        packagesCount: 1,
+        declaredValue: 50000,
+        shippingType: 'normal'
+      }
+    ]);
+  };
+
+  const removeBatchRow = (id: string) => {
+    setBatchItems(batchItems.filter(item => item.id !== id));
+  };
+
+  const updateBatchRow = (id: string, field: string, value: any) => {
+    setBatchItems(batchItems.map(item => item.id === id ? { ...item, [field]: value } : item));
+  };
+
+  const calculateBatchSubtotal = () => {
+    return batchItems.reduce((acc, item) => {
+      const base = 4500;
+      const pkg = item.packagesCount * 800;
+      const express = item.shippingType === 'express' ? 3000 : item.shippingType === 'same_day' ? 5000 : 0;
+      const insurance = item.declaredValue > 50000 ? Math.round(1000 + (item.declaredValue - 50000) * 0.01) : 1000;
+      return acc + base + pkg + express + insurance;
+    }, 0);
+  };
+
+  const handleBatchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (batchItems.length === 0) return;
+
+    const trackingNumber = `FX-BATCH-${Math.floor(1000 + Math.random() * 9000)}-CL`;
+    const batchTotal = calculateBatchSubtotal();
+    const deliveryCode = `FLW-BATCH-${Math.floor(1000 + Math.random() * 9000)}`;
+
+    const newOrderData = {
+      id: `ORD-BATCH-${Date.now()}`,
+      trackingNumber,
+      deliveryCode,
+      enteredBy: savedEnteredBy,
+      sellerName: savedEnteredBy === 'vendedor' ? savedSellerName : undefined,
+      customerEmail: mockCustomerProfile.email,
+      senderName: formData.senderName,
+      senderPhone: formData.senderPhone,
+      senderAddress: formData.senderAddress,
+      senderCommune: formData.senderCommune,
+      
+      recipientName: `Lote de ${batchItems.length} Envíos`,
+      recipientPhone: '+569 8225 7217',
+      recipientEmail: mockCustomerProfile.email,
+      recipientAddress: `${batchItems.length} direcciones ingresadas`,
+      recipientCommune: batchItems[0]?.recipientCommune || 'Providencia',
+      
+      packagesCount: batchItems.reduce((sum, i) => sum + i.packagesCount, 0),
+      packageType: `Multibulto (${batchItems.length} destinatarios)`,
+      weightKg: batchItems.length * 2.0,
+      declaredValue: batchItems.reduce((sum, i) => sum + i.declaredValue, 0),
+      insuranceCost: 3500,
+      shippingType: 'express',
+      
+      zone: 'Multizona Santiago & V Región',
+      hubName: 'Hub Central Pudahuel',
+      
+      status: 'pending',
+      isPaid: false,
+      baseCost: 4500 * batchItems.length,
+      totalCost: batchTotal,
+      
+      createdAt: new Date().toLocaleString(),
+      estimatedDelivery: 'Mañana 17:00 PM',
+      notes: `Ingreso masivo de ${batchItems.length} pedidos.`,
+      
+      eventLogs: [
+        {
+          id: `EV-${Date.now()}`,
+          timestamp: new Date().toLocaleString(),
+          user: savedEnteredBy === 'vendedor' ? savedSellerName : mockCustomerProfile.email,
+          role: savedRole as any,
+          action: 'Ingreso Masivo de Pedidos',
+          details: `Lote de ${batchItems.length} envíos registrado con éxito por ${savedEnteredBy === 'vendedor' ? savedSellerName : 'cliente'}.`
+        }
+      ],
+
+      emailNotifications: [],
       whatsappNotifications: []
     };
 
@@ -245,6 +390,35 @@ export const CreateOrderPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Entry Mode Switcher: Single vs Multiple */}
+      {!createdOrder && (
+        <div className="flex space-x-3 bg-white p-2 rounded-2xl border border-slate-200 shadow-sm text-xs">
+          <button
+            type="button"
+            onClick={() => setEntryMode('single')}
+            className={`flex-1 py-2.5 px-4 rounded-xl font-bold transition-all flex items-center justify-center ${
+              entryMode === 'single'
+                ? 'bg-flow-primary text-white shadow-md'
+                : 'bg-slate-50 text-slate-600 hover:bg-slate-100'
+            }`}
+          >
+            <Package className="w-4 h-4 mr-2" /> 1. Ingreso Único (1 Pedido)
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setEntryMode('batch')}
+            className={`flex-1 py-2.5 px-4 rounded-xl font-bold transition-all flex items-center justify-center ${
+              entryMode === 'batch'
+                ? 'bg-flow-secondary text-white shadow-md'
+                : 'bg-slate-50 text-slate-600 hover:bg-slate-100'
+            }`}
+          >
+            <Layers className="w-4 h-4 mr-2" /> 2. Ingreso Múltiple / Masivo ({batchItems.length} Envíos)
+          </button>
+        </div>
+      )}
+
       {createdOrder && !showPaymentModal ? (
         /* Order Created Success View */
         <div className="bg-white p-8 rounded-2xl border-2 border-emerald-200 shadow-flow text-center space-y-6">
@@ -261,6 +435,13 @@ export const CreateOrderPage: React.FC = () => {
             <p className="text-xs text-slate-500 mt-2">
               Zonificación Automática: <span className="font-bold text-flow-secondary">{createdOrder.zone}</span>
             </p>
+
+            {createdOrder.deliveryCode && (
+              <div className="mt-3 bg-emerald-50 p-3 rounded-2xl border border-emerald-200 inline-flex items-center space-x-2 text-xs text-emerald-900 font-bold shadow-sm">
+                <Key className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                <span>Código Seguro para el Cliente (PIN): <span className="font-mono text-base font-extrabold text-flow-primary tracking-wider">{createdOrder.deliveryCode}</span></span>
+              </div>
+            )}
           </div>
 
           <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs text-left max-w-md mx-auto space-y-2">
@@ -295,6 +476,152 @@ export const CreateOrderPage: React.FC = () => {
             </button>
           </div>
         </div>
+      ) : entryMode === 'batch' ? (
+        /* Batch / Multiple Orders Entry Form */
+        <form onSubmit={handleBatchSubmit} className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+          <div className="flex justify-between items-center border-b border-slate-200 pb-3">
+            <div>
+              <h3 className="text-base font-headline font-bold text-flow-primary flex items-center">
+                <Layers className="w-5 h-5 mr-2 text-flow-secondary" /> Ingreso Masivo / Múltiples Pedidos
+              </h3>
+              <p className="text-xs text-slate-500">Agrega múltiples destinatarios para generar sus envíos en una sola operación.</p>
+            </div>
+            <button
+              type="button"
+              onClick={addBatchRow}
+              className="px-3.5 py-2 bg-flow-primary hover:bg-blue-900 text-white font-bold text-xs rounded-xl shadow flex items-center transition-colors"
+            >
+              <Plus className="w-4 h-4 mr-1.5" /> Agregar Otro Envío
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            {batchItems.map((item, index) => (
+              <div key={item.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-xs space-y-3 relative">
+                <div className="flex justify-between items-center border-b border-slate-200 pb-2">
+                  <span className="font-bold text-flow-primary font-mono bg-blue-100 text-blue-900 px-2.5 py-0.5 rounded">
+                    Envío #{index + 1}
+                  </span>
+                  {batchItems.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeBatchRow(item.id)}
+                      className="text-rose-600 hover:text-rose-800 p-1 flex items-center font-bold"
+                    >
+                      <Trash2 className="w-4 h-4 mr-1" /> Quitar
+                    </button>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">Destinatario</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Nombre del cliente"
+                      value={item.recipientName}
+                      onChange={(e) => updateBatchRow(item.id, 'recipientName', e.target.value)}
+                      className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-flow-primary"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">Teléfono Contacto</label>
+                    <input
+                      type="text"
+                      required
+                      value={item.recipientPhone}
+                      onChange={(e) => updateBatchRow(item.id, 'recipientPhone', e.target.value)}
+                      className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-flow-primary font-mono font-semibold"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">Comuna Destino</label>
+                    <select
+                      value={item.recipientCommune}
+                      onChange={(e) => updateBatchRow(item.id, 'recipientCommune', e.target.value)}
+                      className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-flow-primary font-semibold"
+                    >
+                      {coverageZonesList.map(c => (
+                        <option key={c.commune} value={c.commune}>
+                          {c.commune} {c.hasCoverage ? `(${c.zoneName})` : '⚠️ SIN COBERTURA'}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">Dirección</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Calle y número"
+                      value={item.recipientAddress}
+                      onChange={(e) => updateBatchRow(item.id, 'recipientAddress', e.target.value)}
+                      className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-flow-primary"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">Bultos</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={item.packagesCount}
+                      onChange={(e) => updateBatchRow(item.id, 'packagesCount', parseInt(e.target.value) || 1)}
+                      className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-flow-primary"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">Valor Declarado ($)</label>
+                    <input
+                      type="number"
+                      value={item.declaredValue}
+                      onChange={(e) => updateBatchRow(item.id, 'declaredValue', parseInt(e.target.value) || 0)}
+                      className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-flow-primary font-mono font-bold"
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="bg-slate-900 text-white p-5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center space-x-3">
+              <Calculator className="w-8 h-8 text-flow-secondary" />
+              <div>
+                <span className="text-xs font-bold text-slate-300 uppercase">Resumen de Lote ({batchItems.length} envíos)</span>
+                <p className="text-[11px] text-slate-400">Total Bultos: {batchItems.reduce((s, i) => s + i.packagesCount, 0)} bulto(s)</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <span className="text-3xl font-headline font-extrabold text-flow-secondary font-mono">
+                ${calculateBatchSubtotal().toLocaleString()} CLP
+              </span>
+            </div>
+          </div>
+
+          <div className="pt-2 flex justify-end space-x-3">
+            <button
+              type="button"
+              onClick={() => navigate('/admin')}
+              className="px-5 py-2.5 bg-slate-100 text-slate-700 font-semibold text-xs rounded-xl hover:bg-slate-200 transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              className="px-6 py-2.5 bg-flow-secondary hover:bg-orange-600 text-white font-bold text-xs rounded-xl shadow transition-colors"
+            >
+              Procesar Lote ({batchItems.length} Envíos) $\rightarrow$
+            </button>
+          </div>
+        </form>
       ) : (
         <form onSubmit={handleSubmitForm} className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm space-y-8">
           

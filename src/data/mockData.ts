@@ -4,7 +4,7 @@ export const mockCustomerProfile: CustomerProfile = {
   id: 'CUST-001',
   name: 'Importaciones Santiago S.A.',
   email: 'contacto@importacionessantiago.cl',
-  phone: '+56 9 8765 4321',
+  phone: '+569 8225 7217',
   savedAddresses: [
     { address: 'Av. Providencia 1234, Of. 502', commune: 'Providencia' },
     { address: 'Bodega Central Pudahuel, Módulo 4', commune: 'Pudahuel' }
@@ -16,15 +16,16 @@ export const mockOrders: Order[] = [
   {
     id: 'ORD-84920',
     trackingNumber: 'FX-9842-8812-CL',
+    deliveryCode: 'FLW-8225',
     enteredBy: 'cliente',
     customerEmail: 'contacto@importacionessantiago.cl',
     senderName: 'Importaciones Santiago S.A.',
-    senderPhone: '+56 9 8765 4321',
+    senderPhone: '+569 8225 7217',
     senderAddress: 'Av. Providencia 1234, Of. 502',
     senderCommune: 'Providencia',
     
     recipientName: 'Carlos Mendoza Ruiz',
-    recipientPhone: '+56 9 1122 3344',
+    recipientPhone: '+569 8225 7217',
     recipientEmail: 'carlos.mendoza@gmail.com',
     recipientAddress: 'Calle San Martín 842, Dpto 3B',
     recipientCommune: 'Viña del Mar',
@@ -317,18 +318,19 @@ export const mockOrders: Order[] = [
   {
     id: 'ORD-84923',
     trackingNumber: 'FX-1102-9988-CL',
+    deliveryCode: 'FLW-7217',
     enteredBy: 'vendedor',
     sellerName: 'Marcela Vendedora Zona Sur',
     customerEmail: 'contacto@textilesdelsur.cl',
     senderName: 'Textiles del Sur',
-    senderPhone: '+56 9 4455 6677',
+    senderPhone: '+569 8225 7217',
     senderAddress: 'Camino a Melipilla 8900',
     senderCommune: 'Maipú',
     
     recipientName: 'Farmacia Salud y Vida',
-    recipientPhone: '+56 9 6677 8899',
+    recipientPhone: '+569 8225 7217',
     recipientEmail: 'despacho@farmaciasalud.cl',
-    recipientAddress: 'Av. Alemania 1200',
+    recipientAddress: 'Av. Alemania 1200, Local 4B',
     recipientCommune: 'Temuco',
     
     packagesCount: 10,
@@ -350,30 +352,35 @@ export const mockOrders: Order[] = [
     assignedDriverId: 'DRV-03',
     assignedDriverName: 'Juan Pablo Valenzuela',
     
+    failedDeliveryReason: 'Destinatario ausente en domicilio (Portón cerrado sin respuesta)',
+    failedDeliveryPhotoUrl: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=500&auto=format&fit=crop&q=60',
+    deliveryAttemptsCount: 1,
+
     baseCost: 29000,
     totalCost: 42000,
     
     createdAt: '2026-07-19 15:20',
     estimatedDelivery: '2026-07-21 12:00',
-    notes: 'INCIDENCIA: Dirección sin número de local.',
+    notes: 'INCIDENCIA: Intento 1 fallido (Destinatario ausente). Foto de evidencia subida por conductor. En espera de re-intento de entrega.',
     
     eventLogs: [
       { id: 'EV-30', timestamp: '2026-07-19 15:20', user: 'marcela.vendedora@flowex.cl', role: 'admin', action: 'Pedido Creado por Vendedor', details: 'Ingresado por ejecutiva Marcela.' },
-      { id: 'EV-31', timestamp: '2026-07-21 11:30', user: 'jvalenzuela@flowex.cl', role: 'driver', action: 'Cambio de Estado: No Entregado', details: 'Intento de entrega fallido. Falta número de local.' }
+      { id: 'EV-31', timestamp: '2026-07-21 11:30', user: 'jvalenzuela@flowex.cl', role: 'driver', action: 'Intento 1 Fallido - Evidencia Fotográfica Adjunta', details: 'Destinatario ausente en domicilio (Portón cerrado). Conductor Juan Pablo Valenzuela subió foto de respaldo. Paquete re-ingresado a la cola para segundo intento.' }
     ],
 
     emailNotifications: [
-      { id: 'EM-30', timestamp: '2026-07-21 11:31', recipientEmail: 'despacho@farmaciasalud.cl', triggerEvent: 'failed', subject: 'FlowEx: Intento de entrega fallido para FX-1102-9988-CL', sent: true, body: 'El transportista no pudo entregar por falta de número de local.' }
+      { id: 'EM-30', timestamp: '2026-07-21 11:31', recipientEmail: 'despacho@farmaciasalud.cl', triggerEvent: 'failed', subject: 'FlowEx: Intento 1 de entrega fallido para FX-1102-9988-CL', sent: true, body: 'Hola, el repartidor no encontró respuesta en el domicilio. Se adjunta evidencia fotográfica y el paquete ha vuelto a la cola para un próximo intento de entrega.' }
     ],
 
     whatsappNotifications: [
       {
         id: 'WA-30',
         timestamp: '2026-07-21 11:31',
-        recipientPhone: '+56 9 6677 8899',
+        recipientPhone: '+569 8225 7217',
         triggerEvent: 'failed',
-        message: 'FlowEx Alertas: Se ha registrado un problema en la entrega de tu envío FX-1102-9988-CL (Falta número de local).',
-        sent: true
+        message: 'FlowEx Alertas: Intento de entrega fallido para tu envío FX-1102-9988-CL (Destinatario ausente). Foto de evidencia adjunta. Tu paquete ha vuelto a la cola de entrega.',
+        sent: true,
+        whatsappUrl: 'https://api.whatsapp.com/send?phone=56982257217&text=FlowEx%20Intento%20de%20entrega%20fallido'
       }
     ]
   },

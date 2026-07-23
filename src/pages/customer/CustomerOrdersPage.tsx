@@ -9,7 +9,8 @@ import {
   ShieldCheck,
   Plus,
   Layers,
-  Tag
+  Tag,
+  Key
 } from 'lucide-react';
 import { mockOrders, mockCustomerProfile } from '../../data/mockData';
 import type { Order } from '../../types';
@@ -361,6 +362,17 @@ export const CustomerOrdersPage: React.FC = () => {
                   <StatusBadge status={order.status} size="sm" />
                 </div>
               </div>
+
+              {order.deliveryCode && (
+                <div className="bg-emerald-50/80 p-2 rounded-xl border border-emerald-200 flex justify-between items-center text-xs">
+                  <span className="text-emerald-900 font-medium flex items-center">
+                    <Key className="w-3.5 h-3.5 mr-1 text-emerald-600" /> Código PIN de Entrega para el Conductor:
+                  </span>
+                  <span className="font-mono font-extrabold text-flow-primary bg-white px-2 py-0.5 rounded border border-emerald-300">
+                    {order.deliveryCode}
+                  </span>
+                </div>
+              )}
 
               <div className="flex justify-between items-center text-xs">
                 <span className="text-slate-600">Comuna Destino: <strong>{order.recipientCommune}</strong> ({order.zone})</span>
